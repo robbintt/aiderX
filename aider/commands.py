@@ -31,6 +31,10 @@ class SwitchCoder(Exception):
     def __init__(self, placeholder=None, **kwargs):
         self.kwargs = kwargs
         self.placeholder = placeholder
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        if "show_announcements" not in kwargs:
+            self.show_announcements = True
 
 
 class Commands:
@@ -158,6 +162,10 @@ class Commands:
                 ("ask", "Ask questions about your code without making any changes."),
                 ("code", "Ask for changes to your code (using the best edit format)."),
                 (
+                    "pkm",
+                    "Work with a personal knowledge manager to organize your ideas.",
+                ),
+                (
                     "architect",
                     (
                         "Work with an architect model to design code changes, and an editor to make"
@@ -190,16 +198,23 @@ class Commands:
 
         summarize_from_coder = True
         edit_format = ef
+        pkm_mode = False
 
         if ef == "code":
             edit_format = self.coder.main_model.edit_format
             summarize_from_coder = False
         elif ef == "ask":
             summarize_from_coder = False
+        elif ef == "pkm":
+            edit_format = "whole"
+            summarize_from_coder = False
+            pkm_mode = True
 
         raise SwitchCoder(
+            from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=summarize_from_coder,
+            pkm_mode=pkm_mode,
         )
 
     def completions_model(self):
@@ -1169,9 +1184,41 @@ class Commands:
     def completions_context(self):
         raise CommandCompletionException()
 
+    def completions_pkm(self):
+        raise CommandCompletionException()
+
     def cmd_ask(self, args):
         """Ask questions about the code base without editing any files. If no prompt provided, switches to ask mode."""  # noqa
         return self._generic_chat_command(args, "ask")
+
+    def cmd_pkm(self, args):
+        """Work with a personal knowledge manager to organize your ideas. If no prompt provided, switches to pkm mode."""
+        if not args.strip():
+            # Switch to the corresponding chat mode if no args provided
+            return self.cmd_chat_mode("pkm")
+
+        from aider.coders.base_coder import Coder
+
+        coder = Coder.create(
+            io=self.io,
+            from_coder=self.coder,
+            edit_format="whole",
+            pkm_mode=True,
+            summarize_from_coder=False,
+        )
+
+        user_msg = args
+        coder.run(user_msg)
+
+        # Use the provided placeholder if any
+        raise SwitchCoder(
+            edit_format=self.coder.edit_format,
+            pkm_mode=self.coder.pkm_mode,
+            summarize_from_coder=False,
+            from_coder=coder,
+            show_announcements=False,
+            placeholder=None,
+        )
 
     def cmd_code(self, args):
         """Ask for changes to your code. If no prompt provided, switches to code mode."""  # noqa
@@ -1205,6 +1252,7 @@ class Commands:
         # Use the provided placeholder if any
         raise SwitchCoder(
             edit_format=self.coder.edit_format,
+            pkm_mode=self.coder.pkm_mode,
             summarize_from_coder=False,
             from_coder=coder,
             show_announcements=False,

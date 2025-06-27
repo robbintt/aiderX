@@ -838,6 +838,11 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             verbose=args.verbose,
         )
 
+    if args.pkm:
+        if args.edit_format and args.edit_format not in (None, "pkm"):
+            io.tool_warning(f"PKM mode is overriding edit format '{args.edit_format}' with 'pkm'.")
+        args.edit_format = "pkm"
+
     # Check if deprecated remove_reasoning is set
     if main_model.remove_reasoning is not None:
         io.tool_warning(

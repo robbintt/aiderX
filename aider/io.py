@@ -543,10 +543,13 @@ class InputOutput:
             show = self.format_files_for_input(rel_fnames, rel_read_only_fnames)
 
         prompt_prefix = ""
-        if edit_format:
+        if commands.coder.pkm_mode:
+            prompt_prefix += "pkm"
+        elif edit_format:
             prompt_prefix += edit_format
+
         if self.multiline_mode:
-            prompt_prefix += (" " if edit_format else "") + "multi"
+            prompt_prefix += (" " if prompt_prefix else "") + "multi"
         prompt_prefix += "> "
 
         show += prompt_prefix

@@ -213,7 +213,7 @@ class GitRepo:
                 user_language = coder.commit_language
                 if not user_language:
                     user_language = coder.get_user_language()
-            commit_message = self.get_commit_message(diffs, context, user_language)
+            commit_message = self.get_commit_message(diffs, context, user_language, coder=coder)
 
         # Retrieve attribute settings, prioritizing coder.args if available
         if coder and hasattr(coder, "args"):
@@ -323,7 +323,7 @@ class GitRepo:
         except (ValueError, OSError):
             return self.repo.git_dir
 
-    def get_commit_message(self, diffs, context, user_language=None):
+    def get_commit_message(self, diffs, context, user_language=None, coder=None):
         diffs = "# Diffs:\n" + diffs
 
         content = ""
@@ -331,7 +331,10 @@ class GitRepo:
             content += context + "\n"
         content += diffs
 
-        system_content = self.commit_prompt or prompts.commit_system
+        if coder and coder.pkm_mode:
+            system_content = self.commit_prompt or prompts.pkm_commit_system
+        else:
+            system_content = self.commit_prompt or prompts.commit_system
 
         language_instruction = ""
         if user_language:
