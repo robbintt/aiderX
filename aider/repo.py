@@ -338,8 +338,12 @@ class GitRepo:
             language_instruction = f"\n- Is written in {user_language}."
         system_content = system_content.format(language_instruction=language_instruction)
 
+        models_to_use = self.models
+        if coder and coder.main_model and coder.main_model.weak_model:
+            models_to_use = [coder.main_model.weak_model]
+
         commit_message = None
-        for model in self.models:
+        for model in models_to_use:
             spinner_text = f"Generating commit message with {model.name}"
             with WaitingSpinner(spinner_text):
                 if model.system_prompt_prefix:

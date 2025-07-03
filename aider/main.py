@@ -774,16 +774,19 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             alias, model = parts
             models.MODEL_ALIASES[alias.strip()] = model.strip()
 
-    selected_model_name = select_default_model(args, io, analytics)
-    if not selected_model_name:
-        # Error message and analytics event are handled within select_default_model
-        # It might have already offered OAuth if no model/keys were found.
-        # If it failed here, we exit.
-        return 1
+    if not args.llm_command:
+        selected_model_name = select_default_model(args, io, analytics)
+        if not selected_model_name:
+            # Error message and analytics event are handled within select_default_model
+            # It might have already offered OAuth if no model/keys were found.
+            # If it failed here, we exit.
+            return 1
+    else:
+        selected_model_name = args.model
     args.model = selected_model_name  # Update args with the selected model
 
     # Check if an OpenRouter model was selected/specified but the key is missing
-    if args.model.startswith("openrouter/") and not os.environ.get("OPENROUTER_API_KEY"):
+    if args.model and args.model.startswith("openrouter/") and not os.environ.get("OPENROUTER_API_KEY"):
         io.tool_warning(
             f"The specified model '{args.model}' requires an OpenRouter API key, which was not"
             " found."
@@ -819,13 +822,21 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             )
             return 1
 
-    main_model = models.Model(
-        args.model,
-        weak_model=args.weak_model,
-        editor_model=args.editor_model,
-        editor_edit_format=args.editor_edit_format,
-        verbose=args.verbose,
-    )
+    if args.llm_command:
+        # Create a dummy model, but let Coder.create make the LLMCommandCoder
+        model_name = args.model or "llm-command"
+        main_model = models.Model(model_name, weak_model=args.weak_model)
+        main_model.name = f"llm-command:{args.llm_command}"
+        if not args.edit_format:
+            args.edit_format = "diff-fenced"
+    else:
+        main_model = models.Model(
+            args.model,
+            weak_model=args.weak_model,
+            editor_model=args.editor_model,
+            editor_edit_format=args.editor_edit_format,
+            verbose=args.verbose,
+        )
 
     # Check if deprecated remove_reasoning is set
     if main_model.remove_reasoning is not None:
@@ -882,11 +893,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             val = json.dumps(val, indent=4)
             io.tool_output(f"{attr.name}: {val}")
 
-    lint_cmds = parse_lint_cmds(args.lint_cmd, io)
-    if lint_cmds is None:
-        analytics.event("exit", reason="Invalid lint command format")
-        return 1
-
     if args.show_model_warnings:
         problem = models.sanity_check_models(io, main_model)
         if problem:
@@ -899,6 +905,11 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             except KeyboardInterrupt:
                 analytics.event("exit", reason="Keyboard interrupt during model warnings")
                 return 1
+
+    lint_cmds = parse_lint_cmds(args.lint_cmd, io)
+    if lint_cmds is None:
+        analytics.event("exit", reason="Invalid lint command format")
+        return 1
 
     repo = None
     if args.git:
@@ -1004,6 +1015,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             auto_copy_context=args.copy_paste,
             auto_accept_architect=args.auto_accept_architect,
             add_gitignore_files=args.add_gitignore_files,
+            llm_command=args.llm_command,
         )
     except UnknownEditFormat as err:
         io.tool_error(str(err))

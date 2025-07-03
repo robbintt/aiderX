@@ -228,6 +228,8 @@ class ModelInfoManager:
         return dict()
 
     def get_model_info(self, model):
+        if model.startswith("llm-command:"):
+            return dict()
         cached_info = self.get_model_from_cached_json_db(model)
 
         litellm_info = None
@@ -311,6 +313,9 @@ class Model(ModelSettings):
     def __init__(
         self, model, weak_model=None, editor_model=None, editor_edit_format=None, verbose=False
     ):
+        if model == "llm-command":
+            model = "llm-command: llm-command"
+
         # Map any alias to its canonical name
         model = MODEL_ALIASES.get(model, model)
 
@@ -412,6 +417,11 @@ class Model(ModelSettings):
                 self.accepts_settings.append("reasoning_effort")
 
     def apply_generic_model_settings(self, model):
+        if model.startswith("llm-command:") or model.startswith("llm:command"):
+            self.edit_format = "whole"
+            self.weak_model_name = model
+            return
+
         if "/o3-mini" in model:
             self.edit_format = "diff"
             self.use_repo_map = True
@@ -603,6 +613,9 @@ class Model(ModelSettings):
         return litellm.encode(model=self.name, text=text)
 
     def token_count(self, messages):
+        if self.name.startswith("llm-command:"):
+            return 0
+
         if type(messages) is list:
             try:
                 return litellm.token_counter(model=self.name, messages=messages)
@@ -696,6 +709,9 @@ class Model(ModelSettings):
             return dict(keys_in_environment=[var], missing_keys=[])
 
     def validate_environment(self):
+        if self.name.startswith("llm-command:"):
+            return dict(keys_in_environment=True, missing_keys=[])
+
         res = self.fast_validate_environment()
         if res:
             return res
@@ -992,6 +1008,51 @@ class Model(ModelSettings):
         return hash_object, res
 
     def simple_send_with_retries(self, messages):
+        is_llm_command = self.name.startswith("llm-command:") or self.name.startswith(
+            "llm:command"
+        )
+        if is_llm_command:
+            import subprocess
+
+            command = self.name.split(":", 1)[1].strip()
+
+            last_message = ""
+            for msg in reversed(messages):
+                if msg["role"] == "user":
+                    last_message = msg["content"]
+                    break
+
+            try:
+                process = subprocess.run(
+                    command,
+                    input=last_message,
+                    capture_output=True,
+                    text=True,
+                    shell=True,
+                    timeout=request_timeout,
+                )
+                stdout = process.stdout
+                stderr = process.stderr
+                if process.returncode != 0:
+                    content = f"Command failed with return code {process.returncode}\n"
+                    if stdout:
+                        content += f"STDOUT:\n{stdout}\n"
+                    if stderr:
+                        content += f"STDERR:\n{stderr}\n"
+                else:
+                    content = stdout
+                    if stderr:
+                        content += f"\nSTDERR:\n{stderr}"
+
+            except FileNotFoundError as e:
+                content = f"Error running command: {e}"
+            except subprocess.TimeoutExpired:
+                content = f"Command timed out after {request_timeout} seconds."
+            except Exception as e:
+                content = f"Error running command: {e}"
+
+            return content
+
         from aider.exceptions import LiteLLMExceptions
 
         litellm_ex = LiteLLMExceptions()
