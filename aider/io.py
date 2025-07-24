@@ -545,6 +545,8 @@ class InputOutput:
         prompt_prefix = ""
         if commands.coder.pkm_mode:
             prompt_prefix += "pkm"
+        elif commands.coder.cbt_mode:
+            prompt_prefix += "cbt"
         elif edit_format:
             prompt_prefix += edit_format
 

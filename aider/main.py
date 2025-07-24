@@ -843,6 +843,11 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             io.tool_warning(f"PKM mode is overriding edit format '{args.edit_format}' with 'pkm'.")
         args.edit_format = "pkm"
 
+    if hasattr(args, "cbt") and args.cbt:
+        if args.edit_format and args.edit_format not in (None, "cbt"):
+            io.tool_warning(f"CBT mode is overriding edit format '{args.edit_format}' with 'cbt'.")
+        args.edit_format = "cbt"
+
     # Check if deprecated remove_reasoning is set
     if main_model.remove_reasoning is not None:
         io.tool_warning(

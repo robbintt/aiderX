@@ -146,6 +146,9 @@ class Coder:
         if edit_format == "pkm":
             kwargs["pkm_mode"] = True
             edit_format = "whole"
+        if edit_format == "cbt":
+            kwargs["cbt_mode"] = True
+            edit_format = "whole"
 
         if edit_format == "code":
             edit_format = None
@@ -348,6 +351,7 @@ class Coder:
         auto_accept_architect=True,
         llm_command=None,
         pkm_mode=False,
+        cbt_mode=False,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -363,6 +367,7 @@ class Coder:
         self.auto_copy_context = auto_copy_context
         self.auto_accept_architect = auto_accept_architect
         self.pkm_mode = pkm_mode
+        self.cbt_mode = cbt_mode
 
         self.ignore_mentions = ignore_mentions
         if not self.ignore_mentions:
@@ -1238,6 +1243,8 @@ class Coder:
         self.choose_fence()
         if self.pkm_mode:
             system_prompt = prompts.pkm_system
+        elif self.cbt_mode:
+            system_prompt = prompts.cbt_system
         else:
             system_prompt = self.gpt_prompts.main_system
         main_sys = self.fmt_system_prompt(system_prompt)
