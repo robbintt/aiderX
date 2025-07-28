@@ -211,11 +211,11 @@ class Commands:
         elif ef == "ask":
             summarize_from_coder = False
         elif ef == "pkm":
-            edit_format = "whole"
+            edit_format = "diff-fenced"
             summarize_from_coder = False
             pkm_mode = True
-        elif ef == "pkm":
-            edit_format = "whole"
+        elif ef == "cbt":
+            edit_format = "diff-fenced"
             summarize_from_coder = False
             cbt_mode = True
 
@@ -1215,7 +1215,7 @@ class Commands:
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
-            edit_format="whole",
+            edit_format="diff-fenced",
             pkm_mode=True,
             summarize_from_coder=False,
         )
@@ -1244,7 +1244,7 @@ class Commands:
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
-            edit_format="whole",
+            edit_format="diff-fenced",
             cbt_mode=True,
             summarize_from_coder=False,
         )

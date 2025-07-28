@@ -145,10 +145,10 @@ class Coder:
             main_model.llm_command = llm_command
         if edit_format == "pkm":
             kwargs["pkm_mode"] = True
-            edit_format = "whole"
+            edit_format = "diff-fenced"
         if edit_format == "cbt":
             kwargs["cbt_mode"] = True
-            edit_format = "whole"
+            edit_format = "diff-fenced"
 
         if edit_format == "code":
             edit_format = None
