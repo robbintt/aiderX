@@ -1400,6 +1400,10 @@
   use_repo_map: true
   use_temperature: false
   accepts_settings: ["thinking_tokens"]
+  extra_params:
+    thinking:
+      budget_tokens:
+      type: enabled
 
 - name: gemini/gemini-2.5-pro
   overeager: true
@@ -1408,6 +1412,10 @@
   weak_model_name: gemini/gemini-2.5-flash
   use_temperature: false
   accepts_settings: ["thinking_tokens"]
+  extra_params:
+    thinking:
+      budget_tokens: 15000
+      type: enabled
 
 - name: gemini/gemini-2.5-flash-lite-preview-06-17
   overeager: true
