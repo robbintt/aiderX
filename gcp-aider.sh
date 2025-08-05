@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MODEL=gemini/gemini-2.5-pro
+#MODEL=deepinfra/google/gemini-2.5-pro
 
 # these are useful sometimes
 #  --thinking-tokens 128 \
