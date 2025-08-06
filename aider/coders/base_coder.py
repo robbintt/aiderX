@@ -1580,14 +1580,6 @@ class Coder:
             content = ""
 
         if not interrupted:
-            add_rel_files_message = self.check_for_file_mentions(content)
-            if add_rel_files_message:
-                if self.reflected_message:
-                    self.reflected_message += "\n\n" + add_rel_files_message
-                else:
-                    self.reflected_message = add_rel_files_message
-                return
-
             try:
                 if self.reply_completed():
                     return
@@ -1643,6 +1635,14 @@ class Coder:
                 if ok:
                     self.reflected_message = test_errors
                     return
+
+        add_rel_files_message = self.check_for_file_mentions(content)
+        if add_rel_files_message:
+            if self.reflected_message:
+                self.reflected_message += "\n\n" + add_rel_files_message
+            else:
+                self.reflected_message = add_rel_files_message
+            return
 
     def reply_completed(self):
         pass
