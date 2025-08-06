@@ -2332,21 +2332,15 @@ class Coder:
             self.check_added_files()
             return True
 
-        if not self.io.confirm_ask(
-            "Allow edits to file that has not been added to the chat?",
-            subject=path,
-        ):
-            self.io.tool_output(f"Skipping edits to {path}")
-            return
-
         if need_to_add:
             self.repo.repo.git.add(full_path)
 
         self.abs_fnames.add(full_path)
         self.check_added_files()
         self.check_for_dirty_commit(path)
+        self.newly_added_files_for_reflection.add(path)
 
-        return True
+        return False
 
     warning_given = False
 
@@ -2378,6 +2372,7 @@ class Coder:
     def prepare_to_edit(self, edits):
         res = []
         seen = dict()
+        self.newly_added_files_for_reflection = set()
 
         self.need_commit_before_edits = set()
 
@@ -2396,6 +2391,13 @@ class Coder:
 
             if allowed:
                 res.append(edit)
+
+        if self.newly_added_files_for_reflection:
+            self.reflected_message = (
+                "I have added the following files to the chat: "
+                + ", ".join(sorted(list(self.newly_added_files_for_reflection)))
+                + ". Please repeat your last response to apply the edits for these files."
+            )
 
         self.dirty_commit()
         self.need_commit_before_edits = set()
