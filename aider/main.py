@@ -448,6 +448,65 @@ def sanity_check_repo(repo, io):
     return False
 
 
+def create_coder(
+    main_model,
+    args,
+    io,
+    repo,
+    fnames,
+    read_only_fnames,
+    lint_cmds,
+    commands,
+    summarizer,
+    analytics,
+):
+    if args.map_tokens is None:
+        map_tokens = main_model.get_repo_map_tokens()
+    else:
+        map_tokens = args.map_tokens
+
+    # Track auto-commits configuration
+    analytics.event("auto_commits", enabled=bool(args.auto_commits))
+
+    coder = Coder.create(
+        main_model=main_model,
+        edit_format=args.edit_format,
+        io=io,
+        repo=repo,
+        fnames=fnames,
+        read_only_fnames=read_only_fnames,
+        show_diffs=args.show_diffs,
+        auto_commits=args.auto_commits,
+        dirty_commits=args.dirty_commits,
+        dry_run=args.dry_run,
+        map_tokens=map_tokens,
+        verbose=args.verbose,
+        stream=args.stream,
+        use_git=args.git,
+        restore_chat_history=args.restore_chat_history,
+        auto_lint=args.auto_lint,
+        auto_test=args.auto_test,
+        lint_cmds=lint_cmds,
+        test_cmd=args.test_cmd,
+        commands=commands,
+        summarizer=summarizer,
+        analytics=analytics,
+        map_refresh=args.map_refresh,
+        cache_prompts=args.cache_prompts,
+        map_mul_no_files=args.map_multiplier_no_files,
+        num_cache_warming_pings=args.cache_keepalive_pings,
+        suggest_shell_commands=args.suggest_shell_commands,
+        chat_language=args.chat_language,
+        commit_language=args.commit_language,
+        detect_urls=args.detect_urls,
+        auto_copy_context=args.copy_paste,
+        auto_accept_architect=args.auto_accept_architect,
+        add_gitignore_files=args.add_gitignore_files,
+        llm_command=args.llm_command,
+    )
+    return coder
+
+
 def main(argv=None, input=None, output=None, force_git_root=None, return_coder=False):
     report_uncaught_exceptions()
 
@@ -982,50 +1041,18 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             )
         args.stream = False
 
-    if args.map_tokens is None:
-        map_tokens = main_model.get_repo_map_tokens()
-    else:
-        map_tokens = args.map_tokens
-
-    # Track auto-commits configuration
-    analytics.event("auto_commits", enabled=bool(args.auto_commits))
-
     try:
-        coder = Coder.create(
-            main_model=main_model,
-            edit_format=args.edit_format,
-            io=io,
-            repo=repo,
-            fnames=fnames,
-            read_only_fnames=read_only_fnames,
-            show_diffs=args.show_diffs,
-            auto_commits=args.auto_commits,
-            dirty_commits=args.dirty_commits,
-            dry_run=args.dry_run,
-            map_tokens=map_tokens,
-            verbose=args.verbose,
-            stream=args.stream,
-            use_git=args.git,
-            restore_chat_history=args.restore_chat_history,
-            auto_lint=args.auto_lint,
-            auto_test=args.auto_test,
-            lint_cmds=lint_cmds,
-            test_cmd=args.test_cmd,
-            commands=commands,
-            summarizer=summarizer,
-            analytics=analytics,
-            map_refresh=args.map_refresh,
-            cache_prompts=args.cache_prompts,
-            map_mul_no_files=args.map_multiplier_no_files,
-            num_cache_warming_pings=args.cache_keepalive_pings,
-            suggest_shell_commands=args.suggest_shell_commands,
-            chat_language=args.chat_language,
-            commit_language=args.commit_language,
-            detect_urls=args.detect_urls,
-            auto_copy_context=args.copy_paste,
-            auto_accept_architect=args.auto_accept_architect,
-            add_gitignore_files=args.add_gitignore_files,
-            llm_command=args.llm_command,
+        coder = create_coder(
+            main_model,
+            args,
+            io,
+            repo,
+            fnames,
+            read_only_fnames,
+            lint_cmds,
+            commands,
+            summarizer,
+            analytics,
         )
     except UnknownEditFormat as err:
         io.tool_error(str(err))
