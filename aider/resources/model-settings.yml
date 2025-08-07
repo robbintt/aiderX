@@ -1394,18 +1394,32 @@
   weak_model_name: gemini/gemini-2.5-flash-preview-04-17
   accepts_settings: ["thinking_tokens"]
 
-- name: gemini/gemini-2.5-flash
+# 512 to 24576, 0 is disabled, empty auto
+# litellm does disable with 1...
+- name: gemini/gemini-2.5-flash-lite
   overeager: true
-  edit_format: diff-fenced
+  edit_format: whole
   use_repo_map: true
   use_temperature: false
   accepts_settings: ["thinking_tokens"]
   extra_params:
     thinking:
-      budget_tokens:
+      budget_tokens: 0
       type: enabled
 
-# 128 to 32768 thinking tokens
+# 0 to 24576
+- name: gemini/gemini-2.5-flash
+  overeager: true
+  edit_format: whole
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["thinking_tokens"]
+  extra_params:
+    thinking:
+      budget_tokens: 24576
+      type: enabled
+
+# 128 to 32768 thinking tokens, cannot disable
 - name: gemini/gemini-2.5-pro
   overeager: true
   edit_format: diff-fenced
