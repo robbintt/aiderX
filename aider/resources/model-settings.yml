@@ -1424,7 +1424,19 @@
   overeager: true
   edit_format: diff-fenced
   use_repo_map: true
-  weak_model_name: gemini/gemini-2.5-flash
+  weak_model_name: gemini/gemini-2.0-flash
+  use_temperature: false
+  accepts_settings: ["thinking_tokens"]
+  extra_params:
+    thinking:
+      budget_tokens:
+      type: enabled
+
+- name: gemini/gemini-2.5-pro-1p-freebie
+  overeager: true
+  edit_format: diff-fenced
+  use_repo_map: true
+  weak_model_name: gemini/gemini-2.0-flash
   use_temperature: false
   accepts_settings: ["thinking_tokens"]
   extra_params:
@@ -1436,7 +1448,7 @@
   overeager: true
   edit_format: diff-fenced
   use_repo_map: true
-  weak_model_name: gemini/gemini-2.5-flash
+  weak_model_name: gemini/gemini-2.0-flash
   use_temperature: false
   accepts_settings: ["thinking_tokens"]
   extra_params:

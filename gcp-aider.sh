@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#MODEL=gemini/gemini-2.5-pro-1p-freebie
 MODEL=gemini/gemini-2.5-pro
 #MODEL=deepinfra/google/gemini-2.5-pro
 
