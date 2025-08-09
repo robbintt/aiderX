@@ -1602,6 +1602,10 @@ class Coder:
         # restore the previous behavior around adding files
         # TODO: remove the interrupted check to experiment more with nonblocking file adds
         if not interrupted:
+            # this appears to be the only case
+            # we need a flag for if the llm has provided edits. if so, different reflection.
+            # something like "i see you already provided edits, this file was mentioned, so
+            # I added it. Feel free to disregard, but do not go beyond the scope of your last message.
             add_rel_files_message = self.check_for_file_mentions(content)
             if add_rel_files_message:
                 if self.reflected_message:
