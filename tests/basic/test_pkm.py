@@ -21,7 +21,7 @@ def test_cmd_pkm_no_args_switches_mode():
         commands.cmd_pkm("")
 
     assert excinfo.value.pkm_mode is True
-    assert excinfo.value.edit_format == "whole"
+    assert excinfo.value.edit_format == "diff-fenced"
     assert excinfo.value.from_coder == mock_coder
     assert excinfo.value.summarize_from_coder is False
     assert excinfo.value.show_announcements is True  # default
@@ -43,7 +43,7 @@ def test_cmd_pkm_with_args_creates_pkm_coder(mock_coder_create):
     mock_coder_create.assert_called_once_with(
         io=mock_io,
         from_coder=mock_coder,
-        edit_format="whole",
+        edit_format="diff-fenced",
         pkm_mode=True,
         summarize_from_coder=False,
     )

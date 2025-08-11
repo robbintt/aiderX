@@ -13,8 +13,9 @@ from prompt_toolkit.output import DummyOutput
 
 from aider.coders import Coder
 from aider.dump import dump  # noqa: F401
+from aider.config import load_dotenv_files
 from aider.io import InputOutput
-from aider.main import check_gitignore, load_dotenv_files, main, setup_git
+from aider.main import check_gitignore, main, setup_git
 from aider.utils import GitTemporaryDirectory, IgnorantTemporaryDirectory, make_repo
 
 

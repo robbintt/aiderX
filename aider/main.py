@@ -15,13 +15,13 @@ except ImportError:
 
 import importlib_resources
 import shtab
-from dotenv import load_dotenv
 from prompt_toolkit.enums import EditingMode
 
 from aider import __version__, models, urls, utils
 from aider.analytics import Analytics
 from aider.args import get_parser
 from aider.coders import Coder
+from aider.config import Config, get_git_root
 from aider.coders.base_coder import UnknownEditFormat
 from aider.commands import Commands, SwitchCoder
 from aider.copypaste import ClipboardWatcher
@@ -39,32 +39,6 @@ from aider.versioncheck import check_version, install_from_main_branch, install_
 from aider.watch import FileWatcher
 
 from .dump import dump  # noqa: F401
-
-
-def check_config_files_for_yes(config_files):
-    found = False
-    for config_file in config_files:
-        if Path(config_file).exists():
-            try:
-                with open(config_file, "r") as f:
-                    for line in f:
-                        if line.strip().startswith("yes:"):
-                            print("Configuration error detected.")
-                            print(f"The file {config_file} contains a line starting with 'yes:'")
-                            print("Please replace 'yes:' with 'yes-always:' in this file.")
-                            found = True
-            except Exception:
-                pass
-    return found
-
-
-def get_git_root():
-    """Try and guess the git repo, since the conf.yml can be at the repo root"""
-    try:
-        repo = git.Repo(search_parent_directories=True)
-        return repo.working_tree_dir
-    except (git.InvalidGitRepositoryError, FileNotFoundError):
-        return None
 
 
 def guessed_wrong_repo(io, git_root, fnames, git_dname):
@@ -303,37 +277,8 @@ def parse_lint_cmds(lint_cmds, io):
     return res
 
 
-def generate_search_path_list(default_file, git_root, command_line_file):
-    files = []
-    files.append(Path.home() / default_file)  # homedir
-    if git_root:
-        files.append(Path(git_root) / default_file)  # git root
-    files.append(default_file)
-    if command_line_file:
-        files.append(command_line_file)
-
-    resolved_files = []
-    for fn in files:
-        try:
-            resolved_files.append(Path(fn).resolve())
-        except OSError:
-            pass
-
-    files = resolved_files
-    files.reverse()
-    uniq = []
-    for fn in files:
-        if fn not in uniq:
-            uniq.append(fn)
-    uniq.reverse()
-    files = uniq
-    files = list(map(str, files))
-    files = list(dict.fromkeys(files))
-
-    return files
-
-
 def register_models(git_root, model_settings_fname, io, verbose=False):
+    from aider.config import generate_search_path_list
     model_settings_files = generate_search_path_list(
         ".aider.model.settings.yml", git_root, model_settings_fname
     )
@@ -359,36 +304,8 @@ def register_models(git_root, model_settings_fname, io, verbose=False):
     return None
 
 
-def load_dotenv_files(git_root, dotenv_fname, encoding="utf-8"):
-    # Standard .env file search path
-    dotenv_files = generate_search_path_list(
-        ".env",
-        git_root,
-        dotenv_fname,
-    )
-
-    # Explicitly add the OAuth keys file to the beginning of the list
-    oauth_keys_file = Path.home() / ".aider" / "oauth-keys.env"
-    if oauth_keys_file.exists():
-        # Insert at the beginning so it's loaded first (and potentially overridden)
-        dotenv_files.insert(0, str(oauth_keys_file.resolve()))
-        # Remove duplicates if it somehow got included by generate_search_path_list
-        dotenv_files = list(dict.fromkeys(dotenv_files))
-
-    loaded = []
-    for fname in dotenv_files:
-        try:
-            if Path(fname).exists():
-                load_dotenv(fname, override=True, encoding=encoding)
-                loaded.append(fname)
-        except OSError as e:
-            print(f"OSError loading {fname}: {e}")
-        except Exception as e:
-            print(f"Error loading {fname}: {e}")
-    return loaded
-
-
 def register_litellm_models(git_root, model_metadata_fname, io, verbose=False):
+    from aider.config import generate_search_path_list
     model_metadata_files = []
 
     # Add the resource file path
@@ -523,47 +440,20 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     else:
         git_root = get_git_root()
 
-    conf_fname = Path(".aider.conf.yml")
+    config_kwargs = dict()
+    if return_coder:
+        config_kwargs["yes_always"] = True
 
-    default_config_files = []
-    try:
-        default_config_files += [conf_fname.resolve()]  # CWD
-    except OSError:
-        pass
-
-    if git_root:
-        git_conf = Path(git_root) / conf_fname  # git root
-        if git_conf not in default_config_files:
-            default_config_files.append(git_conf)
-    default_config_files.append(Path.home() / conf_fname)  # homedir
-    default_config_files = list(map(str, default_config_files))
-
-    parser = get_parser(default_config_files, git_root)
-    try:
-        args, unknown = parser.parse_known_args(argv)
-    except AttributeError as e:
-        if all(word in str(e) for word in ["bool", "object", "has", "no", "attribute", "strip"]):
-            if check_config_files_for_yes(default_config_files):
-                return 1
-        raise e
+    config = Config(argv=argv, git_root=git_root, **config_kwargs)
+    args = config.args
+    parser = config.parser
+    loaded_dotenvs = config.loaded_dotenvs
 
     if args.verbose:
         print("Config files search order, if no --config:")
-        for file in default_config_files:
+        for file in config.default_config_files:
             exists = "(exists)" if Path(file).exists() else ""
             print(f"  - {file} {exists}")
-
-    default_config_files.reverse()
-
-    parser = get_parser(default_config_files, git_root)
-
-    args, unknown = parser.parse_known_args(argv)
-
-    # Load the .env file specified in the arguments
-    loaded_dotenvs = load_dotenv_files(git_root, args.env_file, args.encoding)
-
-    # Parse again to include any arguments that might have been defined in .env
-    args = parser.parse_args(argv)
 
     if args.shell_completions:
         # Ensure parser.prog is set for shtab, though it should be by default
@@ -604,9 +494,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         args.tool_warning_color = "#FFA500"
         args.assistant_output_color = "blue"
         args.code_theme = "default"
-
-    if return_coder and args.yes_always is None:
-        args.yes_always = True
 
     editing_mode = EditingMode.VI if args.vim else EditingMode.EMACS
 
