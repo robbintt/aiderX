@@ -1488,7 +1488,7 @@ class Coder:
         else:
             self.mdstream = None
 
-        retry_delay = 0.125
+        retry_delay = 2
 
         litellm_ex = LiteLLMExceptions()
 
@@ -1509,7 +1509,7 @@ class Coder:
 
                     should_retry = ex_info.retry
                     if should_retry:
-                        retry_delay *= 2
+                        retry_delay *= 4
                         if retry_delay > RETRY_TIMEOUT:
                             should_retry = False
 
