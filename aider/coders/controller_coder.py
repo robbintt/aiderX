@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from types import SimpleNamespace
+
 from .base_coder import Coder
 from ..utils import format_messages
 from ..waiting import WaitingSpinner
@@ -10,6 +12,14 @@ class ControllerCoder(Coder):
         self.__dict__ = main_coder.__dict__.copy()
         self.main_coder = main_coder
         self.controller_model = controller_model
+
+        # The controller has its own simple prompts
+        self.gpt_prompts = SimpleNamespace()
+        self.gpt_prompts.system_reminder = (
+            "You are a request analysis model. Your task is to analyze the user's request and the"
+            " provided context. Your output should be a brief analysis only. Do NOT attempt to"
+            " fulfill the user's request."
+        )
 
     def send_message(self, inp):
         self.event("message_send_starting")
@@ -51,11 +61,7 @@ class ControllerCoder(Coder):
             dict(role="user", content=fenced_messages),
         ]
 
-        final_reminder = (
-            "You are a request analysis model. Your task is to analyze the user's request and the"
-            " provided context. Your output should be a brief analysis only. Do NOT attempt to"
-            " fulfill the user's request."
-        )
+        final_reminder = self.gpt_prompts.system_reminder
 
         reminder_mode = getattr(self.controller_model, "reminder", "sys")
         if reminder_mode == "sys":
