@@ -424,8 +424,13 @@ def create_coder(
         add_gitignore_files=args.add_gitignore_files,
         llm_command=args.llm_command,
         mcp_servers=mcp_servers,
-        controller_model=controller_model,
     )
+
+    if controller_model:
+        from aider.coders import ControllerCoder
+
+        coder = ControllerCoder(main_coder=coder, controller_model=controller_model)
+
     return coder
 
 
