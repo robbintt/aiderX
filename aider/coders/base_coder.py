@@ -1479,6 +1479,7 @@ class Coder:
         try:
             response = self.controller_model.send_completion(
                 controller_messages,
+                None,
                 stream=False,
             )
 
