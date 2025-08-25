@@ -13,5 +13,7 @@
 
 # install experimental aider via venv for now
 . ~/virtualenvs/aider_dev/bin/activate
+# stock aider (when i break things)
+#. ~/virtualenvs/stock_aider/bin/activate
 
 aider
