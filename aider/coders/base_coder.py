@@ -1514,16 +1514,7 @@ class Coder:
         messages = chunks.all_messages()
 
         if self.controller_model:
-            controller_messages = (
-                chunks.examples
-                + chunks.done
-                + chunks.repo
-                + chunks.readonly_files
-                + chunks.chat_files
-                + chunks.cur
-                + chunks.reminder
-            )
-            self._run_controller(controller_messages)
+            self._run_controller(messages)
 
         if not self.check_tokens(messages):
             return
