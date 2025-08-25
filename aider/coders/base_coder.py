@@ -127,6 +127,7 @@ class Coder:
     commit_language = None
     file_watcher = None
     mcp_servers = None
+    controller_model = None
     mcp_tools = None
 
     @classmethod
@@ -360,6 +361,7 @@ class Coder:
         pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
+        controller_model=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -371,6 +373,7 @@ class Coder:
         self.aider_commit_hashes = set()
         self.rejected_urls = set()
         self.abs_root_path_cache = {}
+        self.controller_model = controller_model
 
         self.auto_copy_context = auto_copy_context
         self.auto_accept_architect = auto_accept_architect
@@ -1457,6 +1460,43 @@ class Coder:
                 return False
         return True
 
+    def _run_controller(self, messages):
+        self.io.tool_output("▼ Controller Model Analysis")
+
+        system_prompt = (
+            "You are a request analysis model. Your goal is to rate the precision of the user's"
+            " request and break down the relevance of the provided context. Do not answer the"
+            " user's request, only provide the analysis."
+        )
+
+        controller_messages = [dict(role="system", content=system_prompt)] + messages
+
+        spinner = None
+        if self.show_pretty():
+            spinner = WaitingSpinner("Waiting for controller model")
+            spinner.start()
+
+        try:
+            response = self.controller_model.send_completion(
+                controller_messages,
+                stream=False,
+            )
+
+            if spinner:
+                spinner.stop()
+
+            if response and response.choices:
+                content = response.choices[0].message.content
+                if content:
+                    self.io.tool_output(content)
+            else:
+                self.io.tool_warning("Controller model returned empty response.")
+
+        except Exception as e:
+            if spinner:
+                spinner.stop()
+            self.io.tool_error(f"Error with controller model: {e}")
+
     def send_message(self, inp):
         self.event("message_send_starting")
 
@@ -1469,6 +1509,9 @@ class Coder:
 
         chunks = self.format_messages()
         messages = chunks.all_messages()
+
+        if self.controller_model:
+            self._run_controller(messages)
 
         if not self.check_tokens(messages):
             return
