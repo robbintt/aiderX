@@ -17,6 +17,7 @@ class AutoTestHandler(MutableContextHandler):
         :param controller_model: The model to use for analyzing the request (not used).
         """
         self.main_coder = main_coder
+        self.test_cmd = kwargs.get("test_cmd")
 
     def handle(self, messages) -> bool:
         """
@@ -25,13 +26,13 @@ class AutoTestHandler(MutableContextHandler):
         :param messages: The current list of messages in the chat.
         :return: True if a reflection message was set, False otherwise.
         """
-        if not self.main_coder.test_cmd:
+        if not self.test_cmd:
             return False
 
         if not self.main_coder.aider_edited_files:
             return False
 
-        test_errors = self.main_coder.commands.cmd_test(self.main_coder.test_cmd)
+        test_errors = self.main_coder.commands.cmd_test(self.test_cmd)
         self.main_coder.test_outcome = not test_errors
         if test_errors:
             ok = self.main_coder.io.confirm_ask("Attempt to fix test errors?")
