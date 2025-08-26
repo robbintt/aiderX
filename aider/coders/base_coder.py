@@ -128,6 +128,7 @@ class Coder:
     file_watcher = None
     mcp_servers = None
     mcp_tools = None
+    controller_coder = None
 
     @classmethod
     def create(
@@ -1473,6 +1474,9 @@ class Coder:
 
     def _send_and_process_response(self, chunks):
         messages = chunks.all_messages()
+
+        if self.controller_coder:
+            self.controller_coder.run(messages)
 
         if not self.check_tokens(messages):
             return

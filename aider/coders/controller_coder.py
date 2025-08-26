@@ -1,34 +1,14 @@
 #!/usr/bin/env python
 
-from .ask_coder import AskCoder
 from ..utils import format_messages
 from ..waiting import WaitingSpinner
 
 
-class ControllerCoder(AskCoder):
-    @property
-    def reflected_message(self):
-        return getattr(self.main_coder, "reflected_message", None)
-
-    @reflected_message.setter
-    def reflected_message(self, value):
-        self.main_coder.reflected_message = value
-
-    @property
-    def num_reflections(self):
-        return getattr(self.main_coder, "num_reflections", 0)
-
-    @num_reflections.setter
-    def num_reflections(self, value):
-        self.main_coder.num_reflections = value
-
+class ControllerCoder:
     def __init__(self, main_coder, controller_model):
-        self.__dict__ = main_coder.__dict__.copy()
         self.main_coder = main_coder
+        self.io = main_coder.io
         self.controller_model = controller_model
-
-        # The controller is an ask coder, it does not edit files.
-        self.edit_format = "ask"
 
         # The controller has its own simple prompts
         self.controller_system_reminder = (
@@ -37,23 +17,7 @@ class ControllerCoder(AskCoder):
             " fulfill the user's request."
         )
 
-    def send_message(self, inp):
-        self.event("message_send_starting")
-
-        self.io.llm_started()
-
-        self.cur_messages += [
-            dict(role="user", content=inp),
-        ]
-
-        chunks = self.main_coder.format_messages()
-        messages = chunks.all_messages()
-
-        self._run_controller(messages)
-
-        yield from self.main_coder._send_and_process_response(chunks)
-
-    def _run_controller(self, messages):
+    def run(self, messages):
         self.io.tool_output("▼ Controller Model Analysis")
 
         fence_name = "AIDER_MESSAGES"
@@ -86,7 +50,7 @@ class ControllerCoder(AskCoder):
             controller_messages[-1]["content"] += "\n\n" + final_reminder
 
         spinner = None
-        if self.show_pretty():
+        if self.main_coder.show_pretty():
             spinner = WaitingSpinner("Waiting for controller model")
             spinner.start()
 

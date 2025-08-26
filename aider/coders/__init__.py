@@ -2,7 +2,6 @@ from .architect_coder import ArchitectCoder
 from .ask_coder import AskCoder
 from .base_coder import Coder
 from .context_coder import ContextCoder
-from .controller_coder import ControllerCoder
 from .editblock_coder import EditBlockCoder
 from .editblock_fenced_coder import EditBlockFencedCoder
 from .editor_diff_fenced_coder import EditorDiffFencedCoder
@@ -32,5 +31,4 @@ __all__ = [
     EditorWholeFileCoder,
     EditorDiffFencedCoder,
     ContextCoder,
-    ControllerCoder,
 ]
