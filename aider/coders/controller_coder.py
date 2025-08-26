@@ -6,6 +6,10 @@ from ..waiting import WaitingSpinner
 
 
 class ControllerCoder(Coder):
+    @property
+    def gpt_prompts(self):
+        return self.main_coder.gpt_prompts
+
     def __init__(self, main_coder, controller_model):
         self.__dict__ = main_coder.__dict__.copy()
         self.main_coder = main_coder
