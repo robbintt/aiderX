@@ -36,6 +36,7 @@ class FileAdderHandler(MutableContextHandler):
     """
 
     handler_name = "file-adder"
+    entrypoints = ["pre"]
     gpt_prompts = FileAdderPrompts()
 
     def __init__(self, main_coder, controller_model, **kwargs):

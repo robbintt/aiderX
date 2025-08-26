@@ -2,6 +2,7 @@
 
 import importlib
 import inspect
+import ast
 
 from .controller_handler import (
     ControllerHandler,
@@ -43,6 +44,12 @@ class Controller:
         Load controller handlers based on the provided configuration.
         """
         for handler_config in handlers_config:
+            if isinstance(handler_config, str):
+                try:
+                    handler_config = ast.literal_eval(handler_config)
+                except (ValueError, SyntaxError):
+                    pass
+
             if not isinstance(handler_config, dict):
                 self.main_coder.io.tool_warning(
                     f"Invalid handler configuration: {handler_config}"
