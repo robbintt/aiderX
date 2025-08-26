@@ -7,9 +7,9 @@ class ControllerHandler(ABC):
     """
 
     @abstractmethod
-    def handle(self, messages, main_coder):
+    def handle(self, messages):
         """
-        Handle the given messages and coder.
+        Handle the given messages.
         """
         pass
 
@@ -20,7 +20,7 @@ class MutableContextHandler(ControllerHandler):
     """
 
     @abstractmethod
-    def handle(self, messages, main_coder) -> bool:
+    def handle(self, messages) -> bool:
         """
         Handle the messages and return True if context was modified.
         """
@@ -33,7 +33,7 @@ class ImmutableContextHandler(ControllerHandler):
     """
 
     @abstractmethod
-    def handle(self, messages, main_coder):
+    def handle(self, messages):
         """
         Handle the messages.
         """

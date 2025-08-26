@@ -1,154 +1,13 @@
 #!/usr/bin/env python
 
+import importlib.util
+import os
+
 from .controller_handler import (
+    ControllerHandler,
     ImmutableContextHandler,
     MutableContextHandler,
 )
-from .controller_prompts import ControllerPrompts
-from ..io import ConfirmGroup
-from ..utils import format_messages
-from ..waiting import WaitingSpinner
-
-
-class FileAdderHandler(MutableContextHandler):
-    """
-    A controller handler that uses a model to identify files mentioned in the
-    user's request and adds them to the chat context if confirmed by the user.
-    """
-
-    gpt_prompts = ControllerPrompts()
-
-    def __init__(self, controller_model):
-        """
-        Initialize the FileAdderHandler with a controller model.
-
-        :param controller_model: The model to use for analyzing the request.
-        """
-        self.controller_model = controller_model
-        self.num_reflections = 0
-
-    def handle(self, messages, main_coder) -> bool:
-        """
-        Analyzes the user's request to find mentioned files and adds them to the chat.
-
-        This method sends the current chat context to the controller model, which
-        is prompted to identify any files that should be added to the chat for the
-        main coder to have enough context. It then asks the user for confirmation
-        before adding each file.
-
-        The process may involve multiple "reflections" where the model re-evaluates
-        the context after new files have been added.
-
-        :param messages: The current list of messages in the chat.
-        :param main_coder: The main coder instance, used to add files and access IO.
-        :return: True if files were added to the context, False otherwise.
-        """
-        io = main_coder.io
-        io.tool_output("▼ Controller Model Analysis")
-        self.num_reflections = 0
-
-        fence_name = "AIDER_MESSAGES"
-        fence_start = f"<<<<<<< {fence_name}"
-        fence_end = f">>>>>>> {fence_name}"
-
-        system_prompt = self.gpt_prompts.main_system.format(
-            fence_start=fence_start, fence_end=fence_end
-        )
-
-        main_coder_messages = messages
-        controller_messages = []
-
-        modified = False
-
-        while True:
-            formatted_messages = format_messages(main_coder_messages)
-            fenced_messages = f"{fence_start}\n{formatted_messages}\n{fence_end}"
-
-            if not controller_messages:
-                controller_messages = [
-                    dict(role="system", content=system_prompt),
-                    dict(role="user", content=fenced_messages),
-                ]
-            else:
-                # This is a reflection. Update the fenced message.
-                # The second message is the user message with fenced content.
-                controller_messages[1]["content"] = fenced_messages
-
-            current_messages = list(controller_messages)
-            final_reminder = self.gpt_prompts.final_reminder
-            reminder_mode = getattr(self.controller_model, "reminder", "sys")
-            if reminder_mode == "sys":
-                current_messages.append(dict(role="system", content=final_reminder))
-            elif reminder_mode == "user" and current_messages[-1]["role"] == "user":
-                current_messages[-1]["content"] += "\n\n" + final_reminder
-
-            spinner = None
-            if main_coder.show_pretty():
-                spinner = WaitingSpinner("Waiting for controller model")
-                spinner.start()
-
-            content = None
-            try:
-                _, response = self.controller_model.send_completion(
-                    current_messages,
-                    None,
-                    stream=False,
-                )
-
-                if response and response.choices:
-                    content = response.choices[0].message.content
-                else:
-                    io.tool_warning("Controller model returned empty response.")
-
-            except KeyboardInterrupt:
-                raise
-            except Exception as e:
-                io.tool_error(f"Error with controller model: {e}")
-                return False
-            finally:
-                if spinner:
-                    spinner.stop()
-
-            if not content:
-                return False
-
-            io.tool_output(content)
-
-            mentioned_rel_fnames = main_coder.get_file_mentions(content)
-            new_mentions = mentioned_rel_fnames - main_coder.ignore_mentions
-
-            reflected_message = None
-            if new_mentions:
-                added_fnames = []
-                group = ConfirmGroup(new_mentions)
-                for rel_fname in sorted(new_mentions):
-                    if io.confirm_ask(
-                        "Add file to the chat?", subject=rel_fname, group=group, allow_never=True
-                    ):
-                        main_coder.add_rel_fname(rel_fname)
-                        added_fnames.append(rel_fname)
-                    else:
-                        main_coder.ignore_mentions.add(rel_fname)
-
-                if added_fnames:
-                    reflected_message = self.gpt_prompts.files_added
-                    modified = True
-
-            if not reflected_message:
-                break
-
-            if self.num_reflections >= main_coder.max_reflections:
-                io.tool_warning(
-                    f"Only {main_coder.max_reflections} reflections allowed, stopping."
-                )
-                break
-
-            self.num_reflections += 1
-            controller_messages.append(dict(role="assistant", content=content))
-            controller_messages.append(dict(role="user", content=reflected_message))
-
-            main_coder_messages = main_coder.format_messages().all_messages()
-        return modified
 
 
 class Controller:
@@ -167,14 +26,54 @@ class Controller:
         :param main_coder: The main coder instance.
         :param controller_model: The model to use for controller tasks.
         :param handlers: An optional list of handlers to use. If None,
-                         a default FileAdderHandler is created.
+                         handlers are loaded from the plugins/handlers directory.
         """
         self.main_coder = main_coder
         self.controller_model = controller_model
         if handlers:
             self.handlers = handlers
         else:
-            self.handlers = [FileAdderHandler(controller_model)]
+            self.handlers = self.load_handlers()
+
+    def load_handlers(self):
+        """
+        Load controller handlers from the plugins/handlers directory.
+        """
+        handlers = []
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        handlers_dir = os.path.join(current_dir, "plugins", "handlers")
+
+        if not os.path.isdir(handlers_dir):
+            return handlers
+
+        for filename in sorted(os.listdir(handlers_dir)):
+            if filename.endswith(".py") and not filename.startswith("__"):
+                module_name = filename[:-3]
+                module_path = os.path.join(handlers_dir, filename)
+
+                try:
+                    spec = importlib.util.spec_from_file_location(module_name, module_path)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    for item in dir(module):
+                        obj = getattr(module, item)
+                        if (
+                            isinstance(obj, type)
+                            and issubclass(obj, ControllerHandler)
+                            and obj
+                            not in [
+                                ControllerHandler,
+                                MutableContextHandler,
+                                ImmutableContextHandler,
+                            ]
+                        ):
+                            handlers.append(obj(self.main_coder, self.controller_model))
+                except Exception as e:
+                    self.main_coder.io.tool_warning(
+                        f"Failed to load handler from {filename}: {e}"
+                    )
+        return handlers
 
     def run(self, messages):
         """
@@ -189,12 +88,12 @@ class Controller:
         current_messages = messages
         for handler in self.handlers:
             if isinstance(handler, MutableContextHandler):
-                modified = handler.handle(current_messages, self.main_coder)
+                modified = handler.handle(current_messages)
                 if modified:
                     chunks = self.main_coder.format_messages()
                     current_messages = chunks.all_messages()
             elif isinstance(handler, ImmutableContextHandler):
-                handler.handle(current_messages, self.main_coder)
+                handler.handle(current_messages)
 
 
 ControllerCoder = Controller
