@@ -45,7 +45,7 @@ Command-line arguments will override settings from the configuration file.
 
 A handler registry will be implemented to support this dynamic loading:
 
-1.  **Handler Registry**: A global registry (e.g., a dictionary) will map handler names (strings) to their corresponding handler classes. Each handler class will be responsible for registering itself.
+1.  **Handler Registry**: A global registry (e.g., a dictionary) will map handler names (strings) to their corresponding handler classes. Handlers are located in the `aider/plugins/handlers/` directory. Each handler class will be responsible for registering itself.
 2.  **Controller Initialization**: The `Controller.__init__` method will:
     -   Check if a `controller_model` is provided.
     -   If so, it will look at the `controller-handlers` configuration from the CLI and YAML file.
