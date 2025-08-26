@@ -105,7 +105,6 @@ class Coder:
     num_tool_calls = 0
     max_tool_calls = 25
     edit_format = None
-    use_controller = True
     yield_stream = False
     temperature = None
     auto_lint = True

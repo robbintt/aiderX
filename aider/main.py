@@ -378,7 +378,6 @@ def create_coder(
     summarizer,
     analytics,
     mcp_servers,
-    controller_model=None,
 ):
     if args.map_tokens is None:
         map_tokens = main_model.get_repo_map_tokens()
@@ -425,15 +424,6 @@ def create_coder(
         llm_command=args.llm_command,
         mcp_servers=mcp_servers,
     )
-
-    if controller_model:
-        from aider.coders import ControllerCoder
-
-        coder.controller_coder = ControllerCoder(
-            main_coder=coder,
-            controller_model=controller_model,
-            handlers=args.handlers,
-        )
 
     return coder
 
@@ -849,13 +839,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                     " setting."
                 )
 
-    controller_model = None
-    if args.controller_model:
-        if args.llm_command:
-            io.tool_warning("--controller-model is not supported with --llm-command.")
-        else:
-            controller_model = models.Model(args.controller_model, verbose=args.verbose)
-
     if args.copy_paste and args.edit_format is None:
         if main_model.edit_format in ("diff", "whole", "diff-fenced"):
             main_model.edit_format = "editor-" + main_model.edit_format
@@ -969,7 +952,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             summarizer,
             analytics,
             mcp_servers=mcp_servers,
-            controller_model=controller_model,
         )
     except UnknownEditFormat as err:
         io.tool_error(str(err))

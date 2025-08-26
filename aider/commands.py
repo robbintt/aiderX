@@ -1149,10 +1149,6 @@ class Commands:
 
             self.help = Help()
 
-        controller_model = None
-        if self.coder.controller_coder:
-            controller_model = self.coder.controller_coder.controller_model
-
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
@@ -1160,7 +1156,6 @@ class Commands:
             summarize_from_coder=False,
             map_tokens=512,
             map_mul_no_files=1,
-            controller_model=controller_model,
         )
         user_msg = self.help.ask(args)
         user_msg += """
@@ -1217,17 +1212,12 @@ class Commands:
 
         from aider.coders.base_coder import Coder
 
-        controller_model = None
-        if self.coder.controller_coder:
-            controller_model = self.coder.controller_coder.controller_model
-
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
             edit_format="diff-fenced",
             pkm_mode=True,
             summarize_from_coder=False,
-            controller_model=controller_model,
         )
 
         user_msg = args
@@ -1251,17 +1241,12 @@ class Commands:
 
         from aider.coders.base_coder import Coder
 
-        controller_model = None
-        if self.coder.controller_coder:
-            controller_model = self.coder.controller_coder.controller_model
-
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
             edit_format="diff-fenced",
             cbt_mode=True,
             summarize_from_coder=False,
-            controller_model=controller_model,
         )
 
         user_msg = args
@@ -1296,16 +1281,11 @@ class Commands:
 
         from aider.coders.base_coder import Coder
 
-        controller_model = None
-        if self.coder.controller_coder:
-            controller_model = self.coder.controller_coder.controller_model
-
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=False,
-            controller_model=controller_model,
         )
 
         user_msg = args
@@ -1528,9 +1508,9 @@ class Commands:
 
         # Build metadata for the active models (main, editor, weak)
         model_sections = []
-        controller_coder = getattr(self.coder, "controller_coder", None)
+        handler_router = getattr(self.coder, "handler_router", None)
         controller_model = (
-            getattr(controller_coder, "controller_model", None) if controller_coder else None
+            getattr(handler_router, "controller_model", None) if handler_router else None
         )
 
         active_models = [
