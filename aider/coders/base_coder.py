@@ -200,6 +200,7 @@ class Coder:
                 total_tokens_sent=from_coder.total_tokens_sent,
                 total_tokens_received=from_coder.total_tokens_received,
                 file_watcher=from_coder.file_watcher,
+                controller_coder=from_coder.controller_coder,
             )
             use_kwargs.update(update)  # override to complete the switch
             use_kwargs.update(kwargs)  # override passed kwargs
@@ -368,6 +369,7 @@ class Coder:
         mcp_servers=None,
         controller_model=None,
         controller_handlers=None,
+        controller_coder=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -398,6 +400,10 @@ class Coder:
 
         self.num_cache_warming_pings = num_cache_warming_pings
         self.mcp_servers = mcp_servers
+
+        self.controller_coder = controller_coder
+        if self.controller_coder:
+            self.controller_coder.coder = self
 
         if not fnames:
             fnames = []
@@ -580,7 +586,11 @@ class Coder:
         from .controller_coder import Controller
 
         use_controller = getattr(self, "use_controller", False)
-        if (use_controller or self.pkm_mode or self.cbt_mode) and controller_model:
+        if (
+            not self.controller_coder
+            and (use_controller or self.pkm_mode or self.cbt_mode)
+            and controller_model
+        ):
             self.controller_coder = Controller(self, controller_model, controller_handlers)
 
     def setup_lint_cmds(self, lint_cmds):
