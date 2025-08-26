@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-from .base_coder import Coder
+from .ask_coder import AskCoder
 from ..utils import format_messages
 from ..waiting import WaitingSpinner
 
 
-class ControllerCoder(Coder):
+class ControllerCoder(AskCoder):
     @property
     def gpt_prompts(self):
         return self.main_coder.gpt_prompts
@@ -30,6 +30,9 @@ class ControllerCoder(Coder):
         self.__dict__ = main_coder.__dict__.copy()
         self.main_coder = main_coder
         self.controller_model = controller_model
+
+        # The controller is an ask coder, it does not edit files.
+        self.edit_format = "ask"
 
         # The controller has its own simple prompts
         self.controller_system_reminder = (
