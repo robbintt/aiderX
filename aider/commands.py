@@ -1149,6 +1149,10 @@ class Commands:
 
             self.help = Help()
 
+        controller_model = None
+        if self.coder.controller_coder:
+            controller_model = self.coder.controller_coder.controller_model
+
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
@@ -1156,6 +1160,7 @@ class Commands:
             summarize_from_coder=False,
             map_tokens=512,
             map_mul_no_files=1,
+            controller_model=controller_model,
         )
         user_msg = self.help.ask(args)
         user_msg += """
@@ -1212,12 +1217,17 @@ class Commands:
 
         from aider.coders.base_coder import Coder
 
+        controller_model = None
+        if self.coder.controller_coder:
+            controller_model = self.coder.controller_coder.controller_model
+
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
             edit_format="diff-fenced",
             pkm_mode=True,
             summarize_from_coder=False,
+            controller_model=controller_model,
         )
 
         user_msg = args
@@ -1241,12 +1251,17 @@ class Commands:
 
         from aider.coders.base_coder import Coder
 
+        controller_model = None
+        if self.coder.controller_coder:
+            controller_model = self.coder.controller_coder.controller_model
+
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
             edit_format="diff-fenced",
             cbt_mode=True,
             summarize_from_coder=False,
+            controller_model=controller_model,
         )
 
         user_msg = args
@@ -1281,11 +1296,16 @@ class Commands:
 
         from aider.coders.base_coder import Coder
 
+        controller_model = None
+        if self.coder.controller_coder:
+            controller_model = self.coder.controller_coder.controller_model
+
         coder = Coder.create(
             io=self.io,
             from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=False,
+            controller_model=controller_model,
         )
 
         user_msg = args
