@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+from .controller_handler import (
+    ImmutableContextHandler,
+    MutableContextHandler,
+)
 from .controller_prompts import ControllerPrompts
 from ..io import ConfirmGroup
 from ..utils import format_messages
 from ..waiting import WaitingSpinner
 
 
-class ControllerCoder:
+class FileAdderHandler(MutableContextHandler):
     gpt_prompts = ControllerPrompts()
 
     def __init__(self, main_coder, controller_model):
@@ -15,7 +19,7 @@ class ControllerCoder:
         self.controller_model = controller_model
         self.num_reflections = 0
 
-    def run(self, messages):
+    def handle(self, messages, main_coder) -> bool:
         self.io.tool_output("▼ Controller Model Analysis")
         self.num_reflections = 0
 
@@ -29,6 +33,8 @@ class ControllerCoder:
 
         main_coder_messages = messages
         controller_messages = []
+
+        modified = False
 
         while True:
             formatted_messages = format_messages(main_coder_messages)
@@ -77,10 +83,10 @@ class ControllerCoder:
                 if spinner:
                     spinner.stop()
                 self.io.tool_error(f"Error with controller model: {e}")
-                return
+                return False
 
             if not content:
-                return
+                return False
 
             self.io.tool_output(content)
 
@@ -102,6 +108,7 @@ class ControllerCoder:
 
                 if added_fnames:
                     reflected_message = self.gpt_prompts.files_added
+                    modified = True
 
             if not reflected_message:
                 break
@@ -117,3 +124,28 @@ class ControllerCoder:
             controller_messages.append(dict(role="user", content=reflected_message))
 
             main_coder_messages = self.main_coder.format_messages().all_messages()
+        return modified
+
+
+class Controller:
+    def __init__(self, main_coder, controller_model, handlers=None):
+        self.main_coder = main_coder
+        self.controller_model = controller_model
+        if handlers:
+            self.handlers = handlers
+        else:
+            self.handlers = [FileAdderHandler(main_coder, controller_model)]
+
+    def run(self, messages):
+        current_messages = messages
+        for handler in self.handlers:
+            if isinstance(handler, MutableContextHandler):
+                modified = handler.handle(current_messages, self.main_coder)
+                if modified:
+                    chunks = self.main_coder.format_messages()
+                    current_messages = chunks.all_messages()
+            elif isinstance(handler, ImmutableContextHandler):
+                handler.handle(current_messages, self.main_coder)
+
+
+ControllerCoder = Controller
