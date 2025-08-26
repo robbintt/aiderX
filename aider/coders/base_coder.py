@@ -263,10 +263,6 @@ class Coder:
             )
             lines.append(output)
 
-        if self.handler_router and self.handler_router.controller_model:
-            output = f"Controller model: {self.handler_router.controller_model.name}"
-            lines.append(output)
-
         if weak_model is not main_model:
             output = f"Weak model: {weak_model.name}"
             lines.append(output)
