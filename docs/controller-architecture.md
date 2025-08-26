@@ -6,7 +6,7 @@ This document outlines the proposed architecture for the controller and its hand
 
 1.  **Optional and Off by Default**: The controller is an advanced, optional feature. It should be disabled by default to avoid unexpected behavior, latency, or costs for users.
 2.  **Explicit Activation**: The controller is activated only when a user explicitly provides a `controller-model`. This serves as a clear, single switch to enable the feature, avoiding the need for extra flags like `--use-controller`.
-3.  **Modular and Extensible**: The architecture should allow for easy addition of new handlers, both by the core developers and potentially by users or plugins in the future.
+3.  **Modular and Extensible**: The architecture should allow for easy addition of new handlers, both by the core developers and potentially by users or extensions in the future.
 
 ## Implementation Details
 
@@ -45,7 +45,7 @@ Command-line arguments will override settings from the configuration file.
 
 Handlers are loaded dynamically to support extensibility.
 
-1.  **Dynamic Discovery and Loading**: Handlers are not statically registered. Instead, they are discovered and loaded at runtime from the `aider/plugins/handlers/` directory. When a handler is specified by its name (e.g., via `--controller-handlers file-adder`), Aider uses a convention-based approach to find and import the corresponding Python module. It then inspects the module to find a class that implements the handler logic.
+1.  **Dynamic Discovery and Loading**: Handlers are not statically registered. Instead, they are discovered and loaded at runtime from the `aider/extensions/handlers/` directory. When a handler is specified by its name (e.g., via `--controller-handlers file-adder`), Aider uses a convention-based approach to find and import the corresponding Python module. It then inspects the module to find a class that implements the handler logic.
 
 2.  **Controller Initialization**: The `Controller.__init__` method:
     -   Checks if a `controller_model` is provided.
@@ -53,8 +53,8 @@ Handlers are loaded dynamically to support extensibility.
     -   For each requested handler, it dynamically loads and instantiates the handler class, passing in the `controller_model` and any handler-specific configuration.
 
 3.  **Future Runtime Management**: This dynamic architecture is designed to support future commands for managing handlers within an interactive chat session:
-    -   `/plugin-load <handler-name>`: To dynamically load and activate a new handler.
-    -   `/plugin-remove <handler-name>`: To deactivate and unload an active handler.
+    -   `/extension-load <handler-name>`: To dynamically load and activate a new handler.
+    -   `/extension-remove <handler-name>`: To deactivate and unload an active handler.
 
 ### Handler Execution Flow
 
