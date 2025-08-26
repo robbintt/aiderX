@@ -7,10 +7,6 @@ from ..waiting import WaitingSpinner
 
 class ControllerCoder(AskCoder):
     @property
-    def gpt_prompts(self):
-        return self.main_coder.gpt_prompts
-
-    @property
     def reflected_message(self):
         return getattr(self.main_coder, "reflected_message", None)
 
@@ -50,7 +46,7 @@ class ControllerCoder(AskCoder):
             dict(role="user", content=inp),
         ]
 
-        chunks = self.format_messages()
+        chunks = self.main_coder.format_messages()
         messages = chunks.all_messages()
 
         self._run_controller(messages)
