@@ -4,21 +4,21 @@ import importlib
 import inspect
 import ast
 
-from .controller_handler import (
-    ControllerHandler,
+from .handler import (
+    Handler,
     ImmutableContextHandler,
     MutableContextHandler,
 )
 
 
-class HandlerRouter:
+class HandlerManager:
     """
-    The HandlerRouter is responsible for loading and running handlers.
+    The HandlerManager is responsible for loading and running handlers.
     """
 
     def __init__(self, main_coder, controller_model, handlers=None):
         """
-        Initialize the HandlerRouter.
+        Initialize the HandlerManager.
 
         :param main_coder: The main coder instance.
         :param controller_model: The model to use for controller tasks.
@@ -79,8 +79,8 @@ class HandlerRouter:
             handler_class = None
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if (
-                    issubclass(obj, ControllerHandler)
-                    and obj is not ControllerHandler
+                    issubclass(obj, Handler)
+                    and obj is not Handler
                     and obj is not MutableContextHandler
                     and obj is not ImmutableContextHandler
                 ):

@@ -1,7 +1,7 @@
 # flake8: noqa: E501
 
 from aider.coders.base_prompts import CoderPrompts
-from aider.coders.controller_handler import MutableContextHandler
+from ..handler import MutableContextHandler
 from aider.io import ConfirmGroup
 from aider.utils import format_messages
 from aider.waiting import WaitingSpinner

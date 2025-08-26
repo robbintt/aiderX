@@ -1,20 +1,19 @@
-from aider.coders.controller_handler import MutableContextHandler
+from ..handler import MutableContextHandler
 
 
 class AutoTestHandler(MutableContextHandler):
     """
-    A controller handler that runs tests automatically after code changes.
+    A handler that runs tests automatically after code changes.
     """
 
     handler_name = "autotest"
     entrypoints = ["post"]
 
-    def __init__(self, main_coder, controller_model, **kwargs):
+    def __init__(self, main_coder, **kwargs):
         """
         Initialize the AutoTestHandler.
 
         :param main_coder: The main coder instance.
-        :param controller_model: The model to use for analyzing the request (not used).
         """
         self.main_coder = main_coder
         self.test_cmd = kwargs.get("test_cmd")

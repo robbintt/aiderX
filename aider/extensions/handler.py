@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 
-class ControllerHandler(ABC):
+class Handler(ABC):
     """
-    Base class for controller handlers.
+    Base class for extension handlers.
     """
 
     @property
@@ -24,7 +24,7 @@ class ControllerHandler(ABC):
         pass
 
 
-class MutableContextHandler(ControllerHandler):
+class MutableContextHandler(Handler):
     """
     A handler that can modify the chat context.
     """
@@ -37,7 +37,7 @@ class MutableContextHandler(ControllerHandler):
         pass
 
 
-class ImmutableContextHandler(ControllerHandler):
+class ImmutableContextHandler(Handler):
     """
     A handler that can inspect the context but not modify it.
     """

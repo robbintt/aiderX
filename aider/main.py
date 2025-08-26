@@ -377,7 +377,7 @@ def create_coder(
     commands,
     summarizer,
     analytics,
-    mcp_servers,
+    mcp_servers
 ):
     if args.map_tokens is None:
         map_tokens = main_model.get_repo_map_tokens()
@@ -424,7 +424,6 @@ def create_coder(
         llm_command=args.llm_command,
         mcp_servers=mcp_servers,
     )
-
     return coder
 
 
