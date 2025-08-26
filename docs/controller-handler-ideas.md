@@ -44,3 +44,14 @@ This document lists potential ideas for controller handlers to extend Aider's ca
 28. **Changelog Updater**: Drafts an entry for `CHANGELOG.md` based on the changes.
 29. **README Updater**: Suggests updating the README if new features or configuration are added.
 30. **Code Documenter (MkDocs/Sphinx)**: If the project uses a doc generator, suggests updating the documentation files.
+
+## Core Agentic Primitives
+
+Based on [how to build a coding agent: free workshop](https://ghuntley.com/agent/), the following are considered the minimum set of capabilities (primitives) for an agent.
+
+31. **Read File**: Reads the contents of a given file path into the context.
+32. **List Files**: Lists files and directories at a given path.
+33. **Bash Command**: Executes a shell command and returns its output.
+34. **Edit File**: Applies edits to a file, creating it if it doesn't exist.
+35. **Code Search**: Searches for code patterns using a tool like `ripgrep`.
+36. **Oracle**: A secondary, powerful LLM (e.g., GPT-4) wired in as a tool for the primary agentic LLM to use for guidance, checking work, research, and planning.
