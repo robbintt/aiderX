@@ -41,7 +41,8 @@ class Controller:
         """
         handlers = []
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        handlers_dir = os.path.join(current_dir, "plugins", "handlers")
+        aider_dir = os.path.dirname(current_dir)
+        handlers_dir = os.path.join(aider_dir, "plugins", "handlers")
 
         if not os.path.isdir(handlers_dir):
             return handlers
