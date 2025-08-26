@@ -10,6 +10,22 @@ class ControllerCoder(Coder):
     def gpt_prompts(self):
         return self.main_coder.gpt_prompts
 
+    @property
+    def reflected_message(self):
+        return getattr(self.main_coder, "reflected_message", None)
+
+    @reflected_message.setter
+    def reflected_message(self, value):
+        self.main_coder.reflected_message = value
+
+    @property
+    def num_reflections(self):
+        return getattr(self.main_coder, "num_reflections", 0)
+
+    @num_reflections.setter
+    def num_reflections(self, value):
+        self.main_coder.num_reflections = value
+
     def __init__(self, main_coder, controller_model):
         self.__dict__ = main_coder.__dict__.copy()
         self.main_coder = main_coder
