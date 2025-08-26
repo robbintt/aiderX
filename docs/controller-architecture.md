@@ -85,4 +85,4 @@ To provide maximum flexibility, handlers can be designed to run at different sta
 
 ### Default Behavior
 
-If a `controller_model` is provided but the user does not specify any handlers, a default set of safe and useful handlers will be activated. The `FileAdderHandler` is a good candidate for being a default handler. This provides a sensible out-of-the-box experience for users who enable the controller.
+If a `controller_model` is provided but the user does not specify any handlers, no handlers will be activated by default. Handlers must be explicitly configured using the `--controller-handlers` command-line argument or in the `.aider.conf.yml` configuration file.

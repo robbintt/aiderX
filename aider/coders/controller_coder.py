@@ -26,7 +26,7 @@ class Controller:
         :param main_coder: The main coder instance.
         :param controller_model: The model to use for controller tasks.
         :param handlers: An optional list of handlers to use, from user config.
-                         If None, a default set of handlers will be used.
+                         If None, no handlers will be used.
         """
         self.main_coder = main_coder
         self.controller_model = controller_model
@@ -35,11 +35,8 @@ class Controller:
         if not self.controller_model:
             return
 
-        if not handlers:
-            # Default handlers if none are specified
-            handlers = ["file-adder"]
-
-        self._load_handlers(handlers)
+        if handlers:
+            self._load_handlers(handlers)
 
     def _load_handlers(self, handlers_config):
         """
