@@ -48,7 +48,7 @@ class Controller:
                 config = {}
             elif isinstance(handler_config, dict):
                 handler_name = handler_config.get("name")
-                config = handler_config
+                config = handler_config.get("config", {})
             else:
                 self.main_coder.io.tool_warning(
                     f"Invalid handler configuration: {handler_config}"
@@ -98,22 +98,24 @@ class Controller:
         except Exception as e:
             self.main_coder.io.tool_warning(f"Failed to instantiate handler {handler_name}: {e}")
 
-    def run(self, messages):
+    def run(self, messages, entrypoint):
         """
-        Execute the controller logic by running its handlers.
+        Execute the controller logic by running handlers for a specific entrypoint.
 
         This method iterates through its handlers, allowing each to process and
         potentially modify the chat context. If a handler modifies the
         context, the message history is updated for subsequent handlers.
 
         :param messages: The current list of messages in the chat.
+        :param entrypoint: The entrypoint to run handlers for (e.g., "pre").
         """
         current_messages = messages
         for handler in self.handlers:
-            modified = handler.handle(current_messages)
-            if modified:
-                chunks = self.main_coder.format_messages()
-                current_messages = chunks.all_messages()
+            if entrypoint in handler.entrypoints:
+                modified = handler.handle(current_messages)
+                if modified:
+                    chunks = self.main_coder.format_messages()
+                    current_messages = chunks.all_messages()
 
 
 ControllerCoder = Controller

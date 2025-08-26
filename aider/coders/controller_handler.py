@@ -6,6 +6,15 @@ class ControllerHandler(ABC):
     Base class for controller handlers.
     """
 
+    @property
+    @abstractmethod
+    def entrypoints(self) -> list[str]:
+        """
+        The entrypoints at which this handler should be run.
+        e.g., ["pre", "post"]
+        """
+        pass
+
     @abstractmethod
     def handle(self, messages) -> bool:
         """
