@@ -16,4 +16,6 @@
 # stock aider (when i break things)
 #. ~/virtualenvs/stock_aider/bin/activate
 
+#aider --handlers file-adder --handlers potato-handler --controller-model gemini/gemini-2.5-flash
+
 aider

@@ -155,9 +155,9 @@ def get_parser(default_config_files, git_root):
         help="Specify a model to use for request preprocessing and analysis",
     )
     group.add_argument(
-        "--controller-handlers",
+        "--handlers",
         action="append",
-        metavar="HANDLER",
+        metavar="HANDLERS",
         help="Specify a handler for the controller model to use (can be used multiple times)",
         default=None,
     )

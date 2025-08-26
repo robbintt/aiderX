@@ -432,7 +432,7 @@ def create_coder(
         coder.controller_coder = ControllerCoder(
             main_coder=coder,
             controller_model=controller_model,
-            handlers=args.controller_handlers,
+            handlers=args.handlers,
         )
 
     return coder
