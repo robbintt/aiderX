@@ -129,7 +129,7 @@ class Coder:
     file_watcher = None
     mcp_servers = None
     mcp_tools = None
-    controller_coder = None
+    handler_router = None
 
     @classmethod
     def create(
@@ -200,7 +200,7 @@ class Coder:
                 total_tokens_sent=from_coder.total_tokens_sent,
                 total_tokens_received=from_coder.total_tokens_received,
                 file_watcher=from_coder.file_watcher,
-                controller_coder=from_coder.controller_coder,
+                handler_router=from_coder.handler_router,
             )
             use_kwargs.update(update)  # override to complete the switch
             use_kwargs.update(kwargs)  # override passed kwargs
@@ -264,8 +264,8 @@ class Coder:
             )
             lines.append(output)
 
-        if self.controller_coder and self.controller_coder.controller_model:
-            output = f"Controller model: {self.controller_coder.controller_model.name}"
+        if self.handler_router and self.handler_router.controller_model:
+            output = f"Controller model: {self.handler_router.controller_model.name}"
             lines.append(output)
 
         if weak_model is not main_model:
@@ -369,7 +369,7 @@ class Coder:
         mcp_servers=None,
         controller_model=None,
         controller_handlers=None,
-        controller_coder=None,
+        handler_router=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -401,9 +401,9 @@ class Coder:
         self.num_cache_warming_pings = num_cache_warming_pings
         self.mcp_servers = mcp_servers
 
-        self.controller_coder = controller_coder
-        if self.controller_coder:
-            self.controller_coder.main_coder = self
+        self.handler_router = handler_router
+        if self.handler_router:
+            self.handler_router.main_coder = self
 
         if not fnames:
             fnames = []
@@ -583,15 +583,15 @@ class Coder:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
 
-        from .controller_coder import Controller
+        from .handler_router import HandlerRouter
 
         use_controller = getattr(self, "use_controller", False)
         if (
-            not self.controller_coder
+            not self.handler_router
             and (use_controller or self.pkm_mode or self.cbt_mode)
             and controller_model
         ):
-            self.controller_coder = Controller(self, controller_model, controller_handlers)
+            self.handler_router = HandlerRouter(self, controller_model, controller_handlers)
 
     def setup_lint_cmds(self, lint_cmds):
         if not lint_cmds:
@@ -1498,8 +1498,8 @@ class Coder:
     def _send_and_process_response(self, chunks):
         messages = chunks.all_messages()
 
-        if self.controller_coder:
-            self.controller_coder.run(messages, "pre")
+        if self.handler_router:
+            self.handler_router.run(messages, "pre")
             chunks = self.format_messages()
             messages = chunks.all_messages()
 
@@ -1687,9 +1687,9 @@ class Coder:
         if self.reflected_message:
             return
 
-        if self.controller_coder:
+        if self.handler_router:
             messages = self.format_messages().all_messages()
-            self.controller_coder.run(messages, "post")
+            self.handler_router.run(messages, "post")
 
         if edited and self.auto_lint:
             lint_errors = self.lint_edited(edited)
