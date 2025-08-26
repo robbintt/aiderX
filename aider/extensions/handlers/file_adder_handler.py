@@ -1,5 +1,6 @@
 # flake8: noqa: E501
 
+from aider import models
 from aider.coders.base_prompts import CoderPrompts
 from ..handler import MutableContextHandler
 from aider.io import ConfirmGroup
@@ -39,15 +40,16 @@ class FileAdderHandler(MutableContextHandler):
     entrypoints = ["pre"]
     gpt_prompts = FileAdderPrompts()
 
-    def __init__(self, main_coder, controller_model, **kwargs):
+    def __init__(self, main_coder, **kwargs):
         """
         Initialize the FileAdderHandler with a controller model.
 
         :param main_coder: The main coder instance.
-        :param controller_model: The model to use for analyzing the request.
         """
         self.main_coder = main_coder
-        self.controller_model = controller_model
+
+        model_name = kwargs.get("model", main_coder.main_model.weak_model.name)
+        self.controller_model = models.Model(model_name)
         self.num_reflections = 0
         reflections = kwargs.get("reflections")
         if reflections is not None:

@@ -378,7 +378,6 @@ def create_coder(
     summarizer,
     analytics,
     mcp_servers,
-    controller_model=None,
     handlers=None,
 ):
     if args.map_tokens is None:
@@ -425,7 +424,6 @@ def create_coder(
         add_gitignore_files=args.add_gitignore_files,
         llm_command=args.llm_command,
         mcp_servers=mcp_servers,
-        controller_model=controller_model,
         handlers=handlers,
     )
     return coder
@@ -842,13 +840,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                     " setting."
                 )
 
-    controller_model = None
-    if args.controller_model:
-        if args.llm_command:
-            io.tool_warning("--controller-model is not supported with --llm-command.")
-        else:
-            controller_model = models.Model(args.controller_model, verbose=args.verbose)
-
     if args.copy_paste and args.edit_format is None:
         if main_model.edit_format in ("diff", "whole", "diff-fenced"):
             main_model.edit_format = "editor-" + main_model.edit_format
@@ -962,7 +953,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             summarizer,
             analytics,
             mcp_servers=mcp_servers,
-            controller_model=controller_model,
             handlers=args.handlers,
         )
     except UnknownEditFormat as err:

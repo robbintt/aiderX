@@ -262,10 +262,6 @@ class Coder:
             )
             lines.append(output)
 
-        if self.handler_router and self.handler_router.controller_model:
-            output = f"Controller model: {self.handler_router.controller_model.name}"
-            lines.append(output)
-
         if weak_model is not main_model:
             output = f"Weak model: {weak_model.name}"
             lines.append(output)
@@ -365,7 +361,6 @@ class Coder:
         pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
-        controller_model=None,
         handlers=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
@@ -400,8 +395,8 @@ class Coder:
 
         from aider.extensions.handler_manager import HandlerManager
 
-        if controller_model:
-            self.handler_router = HandlerManager(self, controller_model, handlers)
+        if handlers:
+            self.handler_router = HandlerManager(self, handlers)
         else:
             self.handler_router = None
 

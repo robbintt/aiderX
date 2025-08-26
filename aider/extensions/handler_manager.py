@@ -16,21 +16,16 @@ class HandlerManager:
     The HandlerManager is responsible for loading and running handlers.
     """
 
-    def __init__(self, main_coder, controller_model, handlers=None):
+    def __init__(self, main_coder, handlers=None):
         """
         Initialize the HandlerManager.
 
         :param main_coder: The main coder instance.
-        :param controller_model: The model to use for controller tasks.
         :param handlers: An optional list of handlers to use, from user config.
                          If None, no handlers will be used.
         """
         self.main_coder = main_coder
-        self.controller_model = controller_model
         self.handlers = []
-
-        if not self.controller_model:
-            return
 
         if handlers:
             self._load_handlers(handlers)
@@ -88,9 +83,7 @@ class HandlerManager:
                     break
 
             if handler_class:
-                handler_instance = handler_class(
-                    self.main_coder, self.controller_model, **config
-                )
+                handler_instance = handler_class(self.main_coder, **config)
                 self.handlers.append(handler_instance)
             else:
                 self.main_coder.io.tool_warning(
