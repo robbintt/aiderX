@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
+import importlib
+import inspect
 
 from .controller_handler import (
     ControllerHandler,
     ImmutableContextHandler,
     MutableContextHandler,
 )
-from aider.plugins.handlers.file_adder_handler import FileAdderHandler
-
-HANDLER_REGISTRY = {
-    FileAdderHandler.handler_name: FileAdderHandler,
-}
 
 
 class Controller:
@@ -67,19 +64,42 @@ class Controller:
                 )
                 continue
 
-            handler_class = HANDLER_REGISTRY.get(handler_name)
+            self._load_handler(handler_name, config)
+
+    def _load_handler(self, handler_name, config):
+        """
+        Dynamically load a single handler.
+        """
+        try:
+            # Construct module name from handler name, e.g., 'file-adder' -> 'file_adder_handler'
+            module_name = handler_name.replace("-", "_") + "_handler"
+            module_path = f"aider.plugins.handlers.{module_name}"
+            module = importlib.import_module(module_path)
+
+            handler_class = None
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                if (
+                    issubclass(obj, ControllerHandler)
+                    and obj is not ControllerHandler
+                    and obj is not MutableContextHandler
+                    and obj is not ImmutableContextHandler
+                ):
+                    handler_class = obj
+                    break
+
             if handler_class:
-                try:
-                    handler_instance = handler_class(
-                        self.main_coder, self.controller_model, **config
-                    )
-                    self.handlers.append(handler_instance)
-                except Exception as e:
-                    self.main_coder.io.tool_warning(
-                        f"Failed to instantiate handler {handler_name}: {e}"
-                    )
+                handler_instance = handler_class(
+                    self.main_coder, self.controller_model, **config
+                )
+                self.handlers.append(handler_instance)
             else:
-                self.main_coder.io.tool_warning(f"Unknown handler: {handler_name}")
+                self.main_coder.io.tool_warning(
+                    f"No handler class found in module for: {handler_name}"
+                )
+        except ImportError:
+            self.main_coder.io.tool_warning(f"Could not import handler: {handler_name}")
+        except Exception as e:
+            self.main_coder.io.tool_warning(f"Failed to instantiate handler {handler_name}: {e}")
 
     def run(self, messages):
         """
