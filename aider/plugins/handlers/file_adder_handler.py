@@ -35,9 +35,10 @@ class FileAdderHandler(MutableContextHandler):
     user's request and adds them to the chat context if confirmed by the user.
     """
 
+    handler_name = "file-adder"
     gpt_prompts = FileAdderPrompts()
 
-    def __init__(self, main_coder, controller_model):
+    def __init__(self, main_coder, controller_model, **kwargs):
         """
         Initialize the FileAdderHandler with a controller model.
 

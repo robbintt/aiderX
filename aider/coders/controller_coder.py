@@ -6,7 +6,7 @@ from .controller_handler import (
     ImmutableContextHandler,
     MutableContextHandler,
 )
-from .handlers.file_adder_handler import FileAdderHandler
+from aider.plugins.handlers.file_adder_handler import FileAdderHandler
 
 HANDLER_REGISTRY = {
     FileAdderHandler.handler_name: FileAdderHandler,
