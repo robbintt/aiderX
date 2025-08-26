@@ -44,7 +44,7 @@ class ControllerCoder:
                 controller_messages[1]["content"] = fenced_messages
 
             current_messages = list(controller_messages)
-            final_reminder = self.gpt_prompts.system_reminder
+            final_reminder = self.gpt_prompts.final_reminder
             reminder_mode = getattr(self.controller_model, "reminder", "sys")
             if reminder_mode == "sys":
                 current_messages.append(dict(role="system", content=final_reminder))
@@ -81,7 +81,10 @@ class ControllerCoder:
             if not content:
                 return
 
-            reflected_message = self.main_coder.check_for_file_mentions(content)
+            reflected_message = self.main_coder.check_for_file_mentions(
+                content,
+                reflection_prompt=self.gpt_prompts.files_added,
+            )
             self.io.tool_output(content)
 
             if not reflected_message:

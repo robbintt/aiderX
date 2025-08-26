@@ -1999,7 +1999,7 @@ class Coder:
 
         return mentioned_rel_fnames
 
-    def check_for_file_mentions(self, content):
+    def check_for_file_mentions(self, content, reflection_prompt=None):
         mentioned_rel_fnames = self.get_file_mentions(content)
 
         new_mentions = mentioned_rel_fnames - self.ignore_mentions
@@ -2019,6 +2019,11 @@ class Coder:
                 self.ignore_mentions.add(rel_fname)
 
         if added_fnames:
+            if reflection_prompt:
+                try:
+                    return reflection_prompt.format(fnames=", ".join(added_fnames))
+                except KeyError:
+                    return reflection_prompt
             return prompts.added_files.format(fnames=", ".join(added_fnames))
 
     def send_with_llm_command(self, messages, model=None, functions=None):
