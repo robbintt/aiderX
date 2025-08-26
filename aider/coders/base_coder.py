@@ -262,6 +262,10 @@ class Coder:
             )
             lines.append(output)
 
+        if self.controller_coder and self.controller_coder.controller_model:
+            output = f"Controller model: {self.controller_coder.controller_model.name}"
+            lines.append(output)
+
         if weak_model is not main_model:
             output = f"Weak model: {weak_model.name}"
             lines.append(output)
