@@ -1499,7 +1499,7 @@ class Coder:
         messages = chunks.all_messages()
 
         if self.controller_coder:
-            self.controller_coder.run(messages)
+            self.controller_coder.run(messages, "pre")
             chunks = self.format_messages()
             messages = chunks.all_messages()
 
@@ -1686,6 +1686,10 @@ class Coder:
 
         if self.reflected_message:
             return
+
+        if self.controller_coder:
+            messages = self.format_messages().all_messages()
+            self.controller_coder.run(messages, "post")
 
         if edited and self.auto_lint:
             lint_errors = self.lint_edited(edited)
