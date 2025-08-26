@@ -4,6 +4,14 @@ from .base_prompts import CoderPrompts
 
 
 class ControllerPrompts(CoderPrompts):
+    """
+    Prompts for the Controller model.
+
+    The controller model is responsible for analyzing the user's request and the
+    chat context to determine if more files are needed before the main coding
+    model can proceed.
+    """
+
     main_system = """You are a request analysis model. Your task is to analyze the user's request and the provided context and determine if more files are needed. Do NOT attempt to fulfill the user's request.
 
 Your goal is to determine if the user's request can be satisfied with the provided context.
