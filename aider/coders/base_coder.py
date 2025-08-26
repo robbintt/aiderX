@@ -361,6 +361,8 @@ class Coder:
         pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
+        controller_model=None,
+        controller_handlers=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -569,6 +571,12 @@ class Coder:
             if self.verbose:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
+
+        from .controller_coder import Controller
+
+        use_controller = getattr(self, "use_controller", False)
+        if (use_controller or self.pkm_mode or self.cbt_mode) and controller_model:
+            self.controller_coder = Controller(self, controller_model, controller_handlers)
 
     def setup_lint_cmds(self, lint_cmds):
         if not lint_cmds:
