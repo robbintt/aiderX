@@ -1477,6 +1477,8 @@ class Coder:
 
         if self.controller_coder:
             self.controller_coder.run(messages)
+            chunks = self.format_messages()
+            messages = chunks.all_messages()
 
         if not self.check_tokens(messages):
             return

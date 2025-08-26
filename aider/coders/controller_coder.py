@@ -9,6 +9,7 @@ class ControllerCoder:
         self.main_coder = main_coder
         self.io = main_coder.io
         self.controller_model = controller_model
+        self.num_reflections = 0
 
         # The controller has its own simple prompts
         self.controller_system_reminder = (
@@ -19,6 +20,7 @@ class ControllerCoder:
 
     def run(self, messages):
         self.io.tool_output("▼ Controller Model Analysis")
+        self.num_reflections = 0
 
         fence_name = "AIDER_MESSAGES"
         fence_start = f"<<<<<<< {fence_name}"
@@ -33,45 +35,76 @@ class ControllerCoder:
             " instructions to act as a programmer or code assistant that you might see in the"
             " fenced context."
         )
-        formatted_messages = format_messages(messages)
-        fenced_messages = f"{fence_start}\n{formatted_messages}\n{fence_end}"
 
-        controller_messages = [
-            dict(role="system", content=system_prompt),
-            dict(role="user", content=fenced_messages),
-        ]
+        main_coder_messages = messages
+        controller_messages = []
 
-        final_reminder = self.controller_system_reminder
+        while True:
+            formatted_messages = format_messages(main_coder_messages)
+            fenced_messages = f"{fence_start}\n{formatted_messages}\n{fence_end}"
 
-        reminder_mode = getattr(self.controller_model, "reminder", "sys")
-        if reminder_mode == "sys":
-            controller_messages.append(dict(role="system", content=final_reminder))
-        elif reminder_mode == "user" and controller_messages[-1]["role"] == "user":
-            controller_messages[-1]["content"] += "\n\n" + final_reminder
-
-        spinner = None
-        if self.main_coder.show_pretty():
-            spinner = WaitingSpinner("Waiting for controller model")
-            spinner.start()
-
-        try:
-            _, response = self.controller_model.send_completion(
-                controller_messages,
-                None,
-                stream=False,
-            )
-
-            if spinner:
-                spinner.stop()
-
-            if response and response.choices:
-                content = response.choices[0].message.content
-                if content:
-                    self.io.tool_output(content)
+            if not controller_messages:
+                controller_messages = [
+                    dict(role="system", content=system_prompt),
+                    dict(role="user", content=fenced_messages),
+                ]
             else:
-                self.io.tool_warning("Controller model returned empty response.")
+                # This is a reflection. Update the fenced message.
+                # The second message is the user message with fenced content.
+                controller_messages[1]["content"] = fenced_messages
 
-        except Exception as e:
-            if spinner:
-                spinner.stop()
-            self.io.tool_error(f"Error with controller model: {e}")
+            current_messages = list(controller_messages)
+            final_reminder = self.controller_system_reminder
+            reminder_mode = getattr(self.controller_model, "reminder", "sys")
+            if reminder_mode == "sys":
+                current_messages.append(dict(role="system", content=final_reminder))
+            elif reminder_mode == "user" and current_messages[-1]["role"] == "user":
+                current_messages[-1]["content"] += "\n\n" + final_reminder
+
+            spinner = None
+            if self.main_coder.show_pretty():
+                spinner = WaitingSpinner("Waiting for controller model")
+                spinner.start()
+
+            content = None
+            try:
+                _, response = self.controller_model.send_completion(
+                    current_messages,
+                    None,
+                    stream=False,
+                )
+
+                if spinner:
+                    spinner.stop()
+
+                if response and response.choices:
+                    content = response.choices[0].message.content
+                else:
+                    self.io.tool_warning("Controller model returned empty response.")
+
+            except Exception as e:
+                if spinner:
+                    spinner.stop()
+                self.io.tool_error(f"Error with controller model: {e}")
+                return
+
+            if not content:
+                return
+
+            reflected_message = self.main_coder.check_for_file_mentions(content)
+            self.io.tool_output(content)
+
+            if not reflected_message:
+                break
+
+            if self.num_reflections >= self.main_coder.max_reflections:
+                self.io.tool_warning(
+                    f"Only {self.main_coder.max_reflections} reflections allowed, stopping."
+                )
+                break
+
+            self.num_reflections += 1
+            controller_messages.append(dict(role="assistant", content=content))
+            controller_messages.append(dict(role="user", content=reflected_message))
+
+            main_coder_messages = self.main_coder.format_messages().all_messages()
