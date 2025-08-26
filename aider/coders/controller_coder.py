@@ -70,19 +70,19 @@ class FileAdderHandler(MutableContextHandler):
                     stream=False,
                 )
 
-                if spinner:
-                    spinner.stop()
-
                 if response and response.choices:
                     content = response.choices[0].message.content
                 else:
                     io.tool_warning("Controller model returned empty response.")
 
+            except KeyboardInterrupt:
+                raise
             except Exception as e:
-                if spinner:
-                    spinner.stop()
                 io.tool_error(f"Error with controller model: {e}")
                 return False
+            finally:
+                if spinner:
+                    spinner.stop()
 
             if not content:
                 return False
