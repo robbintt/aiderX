@@ -7,9 +7,10 @@ class ControllerHandler(ABC):
     """
 
     @abstractmethod
-    def handle(self, messages):
+    def handle(self, messages) -> bool:
         """
         Handle the given messages.
+        Return True if context was modified, False otherwise.
         """
         pass
 
@@ -32,9 +33,16 @@ class ImmutableContextHandler(ControllerHandler):
     A handler that can inspect the context but not modify it.
     """
 
-    @abstractmethod
-    def handle(self, messages):
+    def handle(self, messages) -> bool:
         """
-        Handle the messages.
+        Handle the messages and return False, as context is not modified.
+        """
+        self._handle(messages)
+        return False
+
+    @abstractmethod
+    def _handle(self, messages):
+        """
+        Process the messages.
         """
         pass

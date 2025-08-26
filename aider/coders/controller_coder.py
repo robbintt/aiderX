@@ -80,20 +80,17 @@ class Controller:
         Execute the controller logic by running its handlers.
 
         This method iterates through its handlers, allowing each to process and
-        potentially modify the chat context. If a mutable handler modifies the
+        potentially modify the chat context. If a handler modifies the
         context, the message history is updated for subsequent handlers.
 
         :param messages: The current list of messages in the chat.
         """
         current_messages = messages
         for handler in self.handlers:
-            if isinstance(handler, MutableContextHandler):
-                modified = handler.handle(current_messages)
-                if modified:
-                    chunks = self.main_coder.format_messages()
-                    current_messages = chunks.all_messages()
-            elif isinstance(handler, ImmutableContextHandler):
-                handler.handle(current_messages)
+            modified = handler.handle(current_messages)
+            if modified:
+                chunks = self.main_coder.format_messages()
+                current_messages = chunks.all_messages()
 
 
 ControllerCoder = Controller
