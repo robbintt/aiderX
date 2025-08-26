@@ -51,6 +51,33 @@ A handler registry will be implemented to support this dynamic loading:
     -   If so, it will look at the `controller-handlers` configuration from the CLI and YAML file.
     -   It will iterate through the requested handler names, look up the class in the registry, and instantiate it, passing the `controller_model` and any handler-specific configuration.
 
+### Handler Execution Flow
+
+To provide maximum flexibility, handlers can be designed to run at different stages of the Aider workflow. This allows them to prepare context, act as tools for the main model, or review the main model's output. While the initial implementation will focus on Pre-Generation handlers, we can categorize the potential execution points into three phases:
+
+1.  **Pre-Generation (Before Main Model Request)**:
+    -   Handlers in this phase run after the user has entered their prompt but before the request is sent to the main coding LLM.
+    -   **Purpose**: To enrich the context provided to the main model.
+    -   **Examples**:
+        -   A linter that runs on the current files and adds the linting errors to the prompt.
+        -   A handler that analyzes the user's request and suggests adding other relevant files to the chat.
+
+2.  **In-Generation (During Main Model Request - Tool Use)**:
+    -   Handlers in this phase act as tools that the main LLM can choose to call during its reasoning process. This requires a model that supports tool use (function calling).
+    -   **Purpose**: To provide the main model with the ability to interact with the user's environment and gather information.
+    -   **Examples**:
+        -   `read_file`: Allows the LLM to read a file that wasn't initially added to the chat.
+        -   `list_files`: Allows the LLM to explore the directory structure.
+        -   `execute_bash_command`: Allows the LLM to run commands to understand the state of the system.
+
+3.  **Post-Generation (After Main Model Response)**:
+    -   Handlers in this phase run after the main LLM has generated a response (e.g., a code change).
+    -   **Purpose**: To validate, refine, or supplement the main model's output.
+    -   **Examples**:
+        -   A code formatter that automatically formats the generated code.
+        -   A test runner that executes tests against the proposed changes and reports back failures.
+        -   A commit message generator that drafts a commit message based on the applied diff.
+
 ### Default Behavior
 
 If a `controller_model` is provided but the user does not specify any handlers, a default set of safe and useful handlers will be activated. The `FileAdderHandler` is a good candidate for being a default handler. This provides a sensible out-of-the-box experience for users who enable the controller.
