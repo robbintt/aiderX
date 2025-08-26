@@ -403,7 +403,7 @@ class Coder:
 
         self.controller_coder = controller_coder
         if self.controller_coder:
-            self.controller_coder.coder = self
+            self.controller_coder.main_coder = self
 
         if not fnames:
             fnames = []
