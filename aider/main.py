@@ -429,7 +429,11 @@ def create_coder(
     if controller_model:
         from aider.coders import ControllerCoder
 
-        coder.controller_coder = ControllerCoder(main_coder=coder, controller_model=controller_model)
+        coder.controller_coder = ControllerCoder(
+            main_coder=coder,
+            controller_model=controller_model,
+            handlers=args.controller_handlers,
+        )
 
     return coder
 
