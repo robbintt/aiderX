@@ -73,7 +73,7 @@ class Controller:
         try:
             # Construct module name from handler name, e.g., 'file-adder' -> 'file_adder_handler'
             module_name = handler_name.replace("-", "_") + "_handler"
-            module_path = f"aider.plugins.handlers.{module_name}"
+            module_path = f"aider.extensions.handlers.{module_name}"
             module = importlib.import_module(module_path)
 
             handler_class = None
