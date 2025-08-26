@@ -367,8 +367,6 @@ class Coder:
         pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
-        controller_model=None,
-        controller_handlers=None,
         handler_router=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
@@ -583,15 +581,6 @@ class Coder:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
 
-        from .handler_router import HandlerRouter
-
-        use_controller = getattr(self, "use_controller", False)
-        if (
-            not self.handler_router
-            and (use_controller or self.pkm_mode or self.cbt_mode)
-            and controller_model
-        ):
-            self.handler_router = HandlerRouter(self, controller_model, controller_handlers)
 
     def setup_lint_cmds(self, lint_cmds):
         if not lint_cmds:
