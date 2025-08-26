@@ -43,13 +43,18 @@ Command-line arguments will override settings from the configuration file.
 
 #### Internal Architecture
 
-A handler registry will be implemented to support this dynamic loading:
+Handlers are loaded dynamically to support extensibility.
 
-1.  **Handler Registry**: A global registry (e.g., a dictionary) will map handler names (strings) to their corresponding handler classes. Handlers are located in the `aider/plugins/handlers/` directory. Each handler class will be responsible for registering itself.
-2.  **Controller Initialization**: The `Controller.__init__` method will:
-    -   Check if a `controller_model` is provided.
-    -   If so, it will look at the `controller-handlers` configuration from the CLI and YAML file.
-    -   It will iterate through the requested handler names, look up the class in the registry, and instantiate it, passing the `controller_model` and any handler-specific configuration.
+1.  **Dynamic Discovery and Loading**: Handlers are not statically registered. Instead, they are discovered and loaded at runtime from the `aider/plugins/handlers/` directory. When a handler is specified by its name (e.g., via `--controller-handlers file-adder`), Aider uses a convention-based approach to find and import the corresponding Python module. It then inspects the module to find a class that implements the handler logic.
+
+2.  **Controller Initialization**: The `Controller.__init__` method:
+    -   Checks if a `controller_model` is provided.
+    -   If so, it processes the `controller-handlers` configuration from the CLI and YAML file.
+    -   For each requested handler, it dynamically loads and instantiates the handler class, passing in the `controller_model` and any handler-specific configuration.
+
+3.  **Future Runtime Management**: This dynamic architecture is designed to support future commands for managing handlers within an interactive chat session:
+    -   `/plugin-load <handler-name>`: To dynamically load and activate a new handler.
+    -   `/plugin-remove <handler-name>`: To deactivate and unload an active handler.
 
 ### Handler Execution Flow
 
