@@ -109,6 +109,7 @@ class Coder:
     yield_stream = False
     temperature = None
     auto_lint = True
+    auto_test = False
     test_cmd = None
     lint_outcome = None
     test_outcome = None
@@ -340,6 +341,7 @@ class Coder:
         done_messages=None,
         restore_chat_history=False,
         auto_lint=True,
+        auto_test=False,
         lint_cmds=None,
         test_cmd=None,
         aider_commit_hashes=None,
@@ -564,6 +566,7 @@ class Coder:
         self.auto_lint = auto_lint
         self.setup_lint_cmds(lint_cmds)
         self.lint_cmds = lint_cmds
+        self.auto_test = auto_test
         self.test_cmd = test_cmd
 
         # Instantiate MCP tools
@@ -1705,6 +1708,14 @@ class Coder:
                 dict(role="assistant", content="Ok"),
             ]
 
+        if edited and self.auto_test:
+            test_errors = self.commands.cmd_test(self.test_cmd)
+            self.test_outcome = not test_errors
+            if test_errors:
+                ok = self.io.confirm_ask("Attempt to fix test errors?")
+                if ok:
+                    self.reflected_message = test_errors
+                    return
 
     def process_tool_calls(self, tool_call_response):
         if tool_call_response is None:
