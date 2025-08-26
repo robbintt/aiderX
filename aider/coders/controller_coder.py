@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from types import SimpleNamespace
-
 from .base_coder import Coder
 from ..utils import format_messages
 from ..waiting import WaitingSpinner
