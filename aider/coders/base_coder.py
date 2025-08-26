@@ -199,7 +199,6 @@ class Coder:
                 total_tokens_sent=from_coder.total_tokens_sent,
                 total_tokens_received=from_coder.total_tokens_received,
                 file_watcher=from_coder.file_watcher,
-                handler_router=from_coder.handler_router,
             )
             use_kwargs.update(update)  # override to complete the switch
             use_kwargs.update(kwargs)  # override passed kwargs
@@ -261,6 +260,10 @@ class Coder:
                 f"Editor model: {main_model.editor_model.name} with"
                 f" {main_model.editor_edit_format} edit format"
             )
+            lines.append(output)
+
+        if self.handler_router and self.handler_router.controller_model:
+            output = f"Controller model: {self.handler_router.controller_model.name}"
             lines.append(output)
 
         if weak_model is not main_model:
@@ -362,7 +365,8 @@ class Coder:
         pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
-        handler_router=None,
+        controller_model=None,
+        handlers=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -394,9 +398,12 @@ class Coder:
         self.num_cache_warming_pings = num_cache_warming_pings
         self.mcp_servers = mcp_servers
 
-        self.handler_router = handler_router
-        if self.handler_router:
-            self.handler_router.main_coder = self
+        from aider.extensions.handler_manager import HandlerManager
+
+        if controller_model:
+            self.handler_router = HandlerManager(self, controller_model, handlers)
+        else:
+            self.handler_router = None
 
         if not fnames:
             fnames = []

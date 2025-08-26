@@ -1508,9 +1508,14 @@ class Commands:
 
         # Build metadata for the active models (main, editor, weak)
         model_sections = []
+        handler_router = getattr(self.coder, "handler_router", None)
+        controller_model = (
+            getattr(handler_router, "controller_model", None) if handler_router else None
+        )
         active_models = [
             ("Main model", self.coder.main_model),
             ("Editor model", getattr(self.coder.main_model, "editor_model", None)),
+            ("Controller model", controller_model),
             ("Weak model", getattr(self.coder.main_model, "weak_model", None)),
         ]
         for label, model in active_models:
