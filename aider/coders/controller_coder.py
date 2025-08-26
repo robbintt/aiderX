@@ -43,17 +43,14 @@ class Controller:
         Load controller handlers based on the provided configuration.
         """
         for handler_config in handlers_config:
-            if isinstance(handler_config, str):
-                handler_name = handler_config
-                config = {}
-            elif isinstance(handler_config, dict):
-                handler_name = handler_config.get("name")
-                config = handler_config.get("config", {})
-            else:
+            if not isinstance(handler_config, dict):
                 self.main_coder.io.tool_warning(
                     f"Invalid handler configuration: {handler_config}"
                 )
                 continue
+
+            handler_name = handler_config.get("name")
+            config = handler_config.get("config", {})
 
             if not handler_name:
                 self.main_coder.io.tool_warning(

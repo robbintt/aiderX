@@ -48,6 +48,11 @@ class FileAdderHandler(MutableContextHandler):
         self.main_coder = main_coder
         self.controller_model = controller_model
         self.num_reflections = 0
+        reflections = kwargs.get("reflections")
+        if reflections is not None:
+            self.max_reflections = int(reflections)
+        else:
+            self.max_reflections = self.main_coder.max_reflections
 
     def handle(self, messages) -> bool:
         """
@@ -158,9 +163,9 @@ class FileAdderHandler(MutableContextHandler):
             if not reflected_message:
                 break
 
-            if self.num_reflections >= self.main_coder.max_reflections:
+            if self.num_reflections >= self.max_reflections:
                 io.tool_warning(
-                    f"Only {self.main_coder.max_reflections} reflections allowed, stopping."
+                    f"Only {self.max_reflections} reflections allowed, stopping."
                 )
                 break
 
