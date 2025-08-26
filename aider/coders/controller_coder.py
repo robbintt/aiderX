@@ -48,7 +48,10 @@ class Controller:
                 try:
                     handler_config = ast.literal_eval(handler_config)
                 except (ValueError, SyntaxError):
-                    pass
+                    pass  # Keep it as a string, will be turned into a dict below
+
+            if isinstance(handler_config, str):
+                handler_config = dict(name=handler_config)
 
             if not isinstance(handler_config, dict):
                 self.main_coder.io.tool_warning(

@@ -26,13 +26,15 @@ To make the controller extensible, users will be able to register and configure 
 
 Users can specify which handlers to use via two methods:
 
-1.  **Command-Line Argument**: A `--handlers` argument will accept a comma-separated list of handler names for ad-hoc use.
+1.  **Command-Line Argument**: Handlers can be specified using one or more `--handlers` arguments. For simple handlers without configuration, you can provide them as a comma-separated list.
     ```bash
     aider --controller-model gpt-4o --handlers file-adder,code-linter,test-runner
     ```
-    You can also pass configurations from the command line by quoting a dictionary string:
+    For handlers that require configuration, it is best to use a separate `--handlers` argument for each handler to avoid issues with shell quoting. Each argument can be a simple handler name or a quoted dictionary string for configuration.
     ```bash
-    aider --handlers "{'name': 'file-adder', 'config': {'reflections': 0}}"
+    aider --controller-model gpt-4o \
+      --handlers file-adder \
+      --handlers "{'name': 'test-runner', 'config': {'command': 'pytest'}}"
     ```
 2.  **YAML Configuration (`.aider.conf.yml`)**: For persistent and more complex configurations, users can define handlers and their configurations in the config file. Handlers can be configured with an arbitrarily nested YAML map under a `config` key.
     ```yaml
