@@ -78,7 +78,9 @@ class FileAdderHandler(MutableContextHandler):
         :return: True if files were added to the context, False otherwise.
         """
         io = self.main_coder.io
-        io.tool_output("▼ Handler Model Analysis")
+        io.tool_output(
+            f"Running {self.handler_name} with {self.handler_model.name} to find files for the chat."
+        )
         self.num_reflections = 0
 
         fence_name = "AIDER_MESSAGES"
@@ -118,7 +120,7 @@ class FileAdderHandler(MutableContextHandler):
 
             spinner = None
             if self.main_coder.show_pretty():
-                spinner = WaitingSpinner("Waiting for handler model")
+                spinner = WaitingSpinner(f"Waiting for {self.handler_model.name}")
                 spinner.start()
 
             content = None
