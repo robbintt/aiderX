@@ -331,10 +331,7 @@ class GitRepo:
             content += context + "\n"
         content += diffs
 
-        if coder and coder.pkm_mode:
-            system_content = self.commit_prompt or prompts.pkm_commit_system
-        else:
-            system_content = self.commit_prompt or prompts.commit_system
+        system_content = self.commit_prompt or prompts.commit_system
 
         language_instruction = ""
         if user_language:

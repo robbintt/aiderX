@@ -162,10 +162,6 @@ class Commands:
                 ("ask", "Ask questions about your code without making any changes."),
                 ("code", "Ask for changes to your code (using the best edit format)."),
                 (
-                    "pkm",
-                    "Work with a personal knowledge manager to organize your ideas.",
-                ),
-                (
                     "cbt",
                     "Use CBT mode for cognitive behavioral therapy.",
                 ),
@@ -202,7 +198,6 @@ class Commands:
 
         summarize_from_coder = True
         edit_format = ef
-        pkm_mode = False
         cbt_mode = False
 
         if ef == "code":
@@ -210,10 +205,6 @@ class Commands:
             summarize_from_coder = False
         elif ef == "ask":
             summarize_from_coder = False
-        elif ef == "pkm":
-            edit_format = "diff-fenced"
-            summarize_from_coder = False
-            pkm_mode = True
         elif ef == "cbt":
             edit_format = "diff-fenced"
             summarize_from_coder = False
@@ -223,7 +214,6 @@ class Commands:
             from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=summarize_from_coder,
-            pkm_mode=pkm_mode,
             cbt_mode=cbt_mode,
         )
 
@@ -1194,8 +1184,6 @@ class Commands:
     def completions_context(self):
         raise CommandCompletionException()
 
-    def completions_pkm(self):
-        raise CommandCompletionException()
 
     def completions_cbt(self):
         raise CommandCompletionException()
@@ -1204,34 +1192,6 @@ class Commands:
         """Ask questions about the code base without editing any files. If no prompt provided, switches to ask mode."""  # noqa
         return self._generic_chat_command(args, "ask")
 
-    def cmd_pkm(self, args):
-        """Work with a personal knowledge manager to organize your ideas. If no prompt provided, switches to pkm mode."""
-        if not args.strip():
-            # Switch to the corresponding chat mode if no args provided
-            return self.cmd_chat_mode("pkm")
-
-        from aider.coders.base_coder import Coder
-
-        coder = Coder.create(
-            io=self.io,
-            from_coder=self.coder,
-            edit_format="diff-fenced",
-            pkm_mode=True,
-            summarize_from_coder=False,
-        )
-
-        user_msg = args
-        coder.run(user_msg)
-
-        # Use the provided placeholder if any
-        raise SwitchCoder(
-            edit_format=self.coder.edit_format,
-            pkm_mode=self.coder.pkm_mode,
-            summarize_from_coder=False,
-            from_coder=coder,
-            show_announcements=False,
-            placeholder=None,
-        )
 
     def cmd_cbt(self, args):
         """Work with CBT mode for cognitive behavioral therapy."""
@@ -1294,7 +1254,6 @@ class Commands:
         # Use the provided placeholder if any
         raise SwitchCoder(
             edit_format=self.coder.edit_format,
-            pkm_mode=self.coder.pkm_mode,
             summarize_from_coder=False,
             from_coder=coder,
             show_announcements=False,

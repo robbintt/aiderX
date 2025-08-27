@@ -51,7 +51,7 @@ def get_parser(default_config_files, git_root):
             for c in _aider_coders.__all__
             if hasattr(c, "edit_format") and c.edit_format is not None
         }
-        | {"pkm", "cbt"}
+        | {"cbt"}
     )
     group = parser.add_argument_group("Main model")
     group.add_argument(
@@ -679,12 +679,6 @@ def get_parser(default_config_files, git_root):
         action=argparse.BooleanOptionalAction,
         help="Run aider in your browser (default: False)",
         default=False,
-    )
-    group.add_argument(
-        "--pkm",
-        action="store_true",
-        default=False,
-        help="Use PKM mode for personal knowledge management (shortcut for --edit-format pkm).",
     )
     group.add_argument(
         "--cbt",

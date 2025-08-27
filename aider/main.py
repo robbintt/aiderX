@@ -405,7 +405,7 @@ def create_coder(
     commands,
     summarizer,
     analytics,
-    mcp_servers
+    mcp_servers,
 ):
     if args.map_tokens is None:
         map_tokens = main_model.get_repo_map_tokens()
@@ -451,6 +451,7 @@ def create_coder(
         add_gitignore_files=args.add_gitignore_files,
         llm_command=args.llm_command,
         mcp_servers=mcp_servers,
+        handlers=args.handlers,
     )
     return coder
 
@@ -814,11 +815,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             editor_edit_format=args.editor_edit_format,
             verbose=args.verbose,
         )
-
-    if args.pkm:
-        if args.edit_format and args.edit_format not in (None, "pkm"):
-            io.tool_warning(f"PKM mode is overriding edit format '{args.edit_format}' with 'pkm'.")
-        args.edit_format = "pkm"
 
     if hasattr(args, "cbt") and args.cbt:
         if args.edit_format and args.edit_format not in (None, "cbt"):

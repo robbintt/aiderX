@@ -128,6 +128,7 @@ class Coder:
     file_watcher = None
     mcp_servers = None
     mcp_tools = None
+    handlers = None
     handler_manager = None
 
     @classmethod
@@ -151,9 +152,6 @@ class Coder:
         llm_command = kwargs.get("llm_command")
         if llm_command:
             main_model.llm_command = llm_command
-        if edit_format == "pkm":
-            kwargs["pkm_mode"] = True
-            edit_format = "diff-fenced"
         if edit_format == "cbt":
             kwargs["cbt_mode"] = True
             edit_format = "diff-fenced"
@@ -297,6 +295,10 @@ class Coder:
         else:
             lines.append("Repo-map: disabled")
 
+        if self.handler_manager and self.handler_manager.handlers:
+            handler_names = [h.name for h in self.handler_manager.handlers]
+            lines.append(f"Plugins: {' '.join(handler_names)}")
+
         # Files
         for fname in self.get_inchat_relative_files():
             lines.append(f"Added {fname} to the chat.")
@@ -358,7 +360,6 @@ class Coder:
         auto_copy_context=False,
         auto_accept_architect=True,
         llm_command=None,
-        pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
         handlers=None,
@@ -376,8 +377,9 @@ class Coder:
 
         self.auto_copy_context = auto_copy_context
         self.auto_accept_architect = auto_accept_architect
-        self.pkm_mode = pkm_mode
         self.cbt_mode = cbt_mode
+
+        self.system_prompt_template = self.gpt_prompts.main_system
 
         self.ignore_mentions = ignore_mentions
         if not self.ignore_mentions:
@@ -571,6 +573,7 @@ class Coder:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
 
+        self.handlers = handlers
         from aider.extensions.handler_manager import HandlerManager
 
         if handlers:
@@ -1269,12 +1272,10 @@ class Coder:
 
     def format_chat_chunks(self):
         self.choose_fence()
-        if self.pkm_mode:
-            system_prompt = prompts.pkm_system
-        elif self.cbt_mode:
+        if self.cbt_mode:
             system_prompt = prompts.cbt_system
         else:
-            system_prompt = self.gpt_prompts.main_system
+            system_prompt = self.system_prompt_template
         main_sys = self.fmt_system_prompt(system_prompt)
         if self.main_model.system_prompt_prefix:
             main_sys = self.main_model.system_prompt_prefix + "\n" + main_sys
