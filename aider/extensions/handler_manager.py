@@ -32,7 +32,7 @@ class HandlerManager:
 
     def _load_handlers(self, handlers_config):
         """
-        Load controller handlers based on the provided configuration.
+        Load handlers based on the provided configuration.
         """
         for handler_config in handlers_config:
             if isinstance(handler_config, str):
@@ -96,7 +96,7 @@ class HandlerManager:
 
     def run(self, messages, entrypoint):
         """
-        Execute the controller logic by running handlers for a specific entrypoint.
+        Execute the handler logic by running handlers for a specific entrypoint.
 
         This method iterates through its handlers, allowing each to process and
         potentially modify the chat context. If a handler modifies the

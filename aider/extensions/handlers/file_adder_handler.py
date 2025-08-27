@@ -32,8 +32,8 @@ To answer, you need to see if the user's request can be fulfilled using ONLY the
 
 class FileAdderHandler(MutableContextHandler):
     """
-    A controller handler that uses a model to identify files mentioned in the
-    user's request and adds them to the chat context if confirmed by the user.
+    A handler that uses a model to identify files mentioned in the user's
+    request and adds them to the chat context if confirmed by the user.
     """
 
     handler_name = "file-adder"
@@ -42,14 +42,14 @@ class FileAdderHandler(MutableContextHandler):
 
     def __init__(self, main_coder, **kwargs):
         """
-        Initialize the FileAdderHandler with a controller model.
+        Initialize the FileAdderHandler with a model.
 
         :param main_coder: The main coder instance.
         """
         self.main_coder = main_coder
 
         model_name = kwargs.get("model", main_coder.main_model.weak_model.name)
-        self.controller_model = models.Model(model_name)
+        self.handler_model = models.Model(model_name)
         self.num_reflections = 0
         reflections = kwargs.get("reflections")
         if reflections is not None:
@@ -73,7 +73,7 @@ class FileAdderHandler(MutableContextHandler):
         :return: True if files were added to the context, False otherwise.
         """
         io = self.main_coder.io
-        io.tool_output("▼ Controller Model Analysis")
+        io.tool_output("▼ Handler Model Analysis")
         self.num_reflections = 0
 
         fence_name = "AIDER_MESSAGES"
@@ -85,7 +85,7 @@ class FileAdderHandler(MutableContextHandler):
         )
 
         main_coder_messages = messages
-        controller_messages = []
+        handler_messages = []
 
         modified = False
 
@@ -93,17 +93,17 @@ class FileAdderHandler(MutableContextHandler):
             formatted_messages = format_messages(main_coder_messages)
             fenced_messages = f"{fence_start}\n{formatted_messages}\n{fence_end}"
 
-            if not controller_messages:
-                controller_messages = [
+            if not handler_messages:
+                handler_messages = [
                     dict(role="system", content=system_prompt),
                     dict(role="user", content=fenced_messages),
                 ]
             else:
                 # This is a reflection. Update the fenced message.
                 # The second message is the user message with fenced content.
-                controller_messages[1]["content"] = fenced_messages
+                handler_messages[1]["content"] = fenced_messages
 
-            current_messages = list(controller_messages)
+            current_messages = list(handler_messages)
             final_reminder = self.gpt_prompts.final_reminder
             reminder_mode = getattr(self.controller_model, "reminder", "sys")
             if reminder_mode == "sys":
@@ -113,12 +113,12 @@ class FileAdderHandler(MutableContextHandler):
 
             spinner = None
             if self.main_coder.show_pretty():
-                spinner = WaitingSpinner("Waiting for controller model")
+                spinner = WaitingSpinner("Waiting for handler model")
                 spinner.start()
 
             content = None
             try:
-                _, response = self.controller_model.send_completion(
+                _, response = self.handler_model.send_completion(
                     current_messages,
                     None,
                     stream=False,
@@ -127,12 +127,12 @@ class FileAdderHandler(MutableContextHandler):
                 if response and response.choices:
                     content = response.choices[0].message.content
                 else:
-                    io.tool_warning("Controller model returned empty response.")
+                    io.tool_warning("Handler model returned empty response.")
 
             except KeyboardInterrupt:
                 raise
             except Exception as e:
-                io.tool_error(f"Error with controller model: {e}")
+                io.tool_error(f"Error with handler model: {e}")
                 return False
             finally:
                 if spinner:
@@ -173,8 +173,8 @@ class FileAdderHandler(MutableContextHandler):
                 break
 
             self.num_reflections += 1
-            controller_messages.append(dict(role="assistant", content=content))
-            controller_messages.append(dict(role="user", content=reflected_message))
+            handler_messages.append(dict(role="assistant", content=content))
+            handler_messages.append(dict(role="user", content=reflected_message))
 
             main_coder_messages = self.main_coder.format_messages().all_messages()
         return modified
