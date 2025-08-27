@@ -574,9 +574,9 @@ class Coder:
         from aider.extensions.handler_manager import HandlerManager
 
         if handlers:
-            self.handler_router = HandlerManager(self, handlers)
+            self.handler_manager = HandlerManager(self, handlers)
         else:
-            self.handler_router = None
+            self.handler_manager = None
 
 
     def setup_lint_cmds(self, lint_cmds):
@@ -1484,8 +1484,8 @@ class Coder:
     def _send_and_process_response(self, chunks):
         messages = chunks.all_messages()
 
-        if self.handler_router:
-            self.handler_router.run(messages, "pre")
+        if self.handler_manager:
+            self.handler_manager.run(messages, "pre")
             chunks = self.format_messages()
             messages = chunks.all_messages()
 
@@ -1673,9 +1673,9 @@ class Coder:
         if self.reflected_message:
             return
 
-        if self.handler_router:
+        if self.handler_manager:
             messages = self.format_messages().all_messages()
-            self.handler_router.run(messages, "post")
+            self.handler_manager.run(messages, "post")
 
         if edited and self.auto_lint:
             lint_errors = self.lint_edited(edited)
