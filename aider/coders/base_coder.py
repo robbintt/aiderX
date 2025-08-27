@@ -393,13 +393,6 @@ class Coder:
         self.num_cache_warming_pings = num_cache_warming_pings
         self.mcp_servers = mcp_servers
 
-        from aider.extensions.handler_manager import HandlerManager
-
-        if handlers:
-            self.handler_router = HandlerManager(self, handlers)
-        else:
-            self.handler_router = None
-
         if not fnames:
             fnames = []
 
@@ -563,6 +556,13 @@ class Coder:
         self.lint_cmds = lint_cmds
         self.auto_test = auto_test
         self.test_cmd = test_cmd
+
+        from aider.extensions.handler_manager import HandlerManager
+
+        if handlers:
+            self.handler_router = HandlerManager(self, handlers)
+        else:
+            self.handler_router = None
 
         # Instantiate MCP tools
         if self.mcp_servers:
