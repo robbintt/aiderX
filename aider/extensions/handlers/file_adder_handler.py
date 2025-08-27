@@ -48,7 +48,12 @@ class FileAdderHandler(MutableContextHandler):
         """
         self.main_coder = main_coder
 
-        model_name = kwargs.get("model", main_coder.main_model.weak_model.name)
+        model_name = kwargs.get("model")
+        if not model_name:
+            if main_coder.main_model.weak_model:
+                model_name = main_coder.main_model.weak_model.name
+            else:
+                model_name = main_coder.main_model.name
         self.handler_model = models.Model(model_name)
         self.num_reflections = 0
         reflections = kwargs.get("reflections")
