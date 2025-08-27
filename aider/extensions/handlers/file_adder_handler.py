@@ -105,7 +105,7 @@ class FileAdderHandler(MutableContextHandler):
 
             current_messages = list(handler_messages)
             final_reminder = self.gpt_prompts.final_reminder
-            reminder_mode = getattr(self.controller_model, "reminder", "sys")
+            reminder_mode = getattr(self.handler_model, "reminder", "sys")
             if reminder_mode == "sys":
                 current_messages.append(dict(role="system", content=final_reminder))
             elif reminder_mode == "user" and current_messages[-1]["role"] == "user":

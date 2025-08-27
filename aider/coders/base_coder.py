@@ -557,13 +557,6 @@ class Coder:
         self.auto_test = auto_test
         self.test_cmd = test_cmd
 
-        from aider.extensions.handler_manager import HandlerManager
-
-        if handlers:
-            self.handler_router = HandlerManager(self, handlers)
-        else:
-            self.handler_router = None
-
         # Instantiate MCP tools
         if self.mcp_servers:
             self.initialize_mcp_tools()
@@ -577,6 +570,13 @@ class Coder:
             if self.verbose:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
+
+        from aider.extensions.handler_manager import HandlerManager
+
+        if handlers:
+            self.handler_router = HandlerManager(self, handlers)
+        else:
+            self.handler_router = None
 
 
     def setup_lint_cmds(self, lint_cmds):
