@@ -128,6 +128,7 @@ class Coder:
     file_watcher = None
     mcp_servers = None
     mcp_tools = None
+    handler_manager = None
 
     @classmethod
     def create(
@@ -360,6 +361,7 @@ class Coder:
         pkm_mode=False,
         cbt_mode=False,
         mcp_servers=None,
+        handlers=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -568,6 +570,13 @@ class Coder:
             if self.verbose:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
+
+        from aider.extensions.handler_manager import HandlerManager
+
+        if handlers:
+            self.handler_manager = HandlerManager(self, handlers)
+        else:
+            self.handler_manager = None
 
     def setup_lint_cmds(self, lint_cmds):
         if not lint_cmds:
@@ -1470,6 +1479,11 @@ class Coder:
         chunks = self.format_messages()
         messages = chunks.all_messages()
 
+        if self.handler_manager:
+            self.handler_manager.run(messages, "pre")
+            chunks = self.format_messages()
+            messages = chunks.all_messages()
+
         if not self.check_tokens(messages):
             return
         self.warm_cache(chunks)
@@ -1653,6 +1667,10 @@ class Coder:
 
         if self.reflected_message:
             return
+
+        if self.handler_manager:
+            messages = self.format_messages().all_messages()
+            self.handler_manager.run(messages, "post")
 
         if edited and self.auto_lint:
             lint_errors = self.lint_edited(edited)

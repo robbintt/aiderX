@@ -277,6 +277,34 @@ def parse_lint_cmds(lint_cmds, io):
     return res
 
 
+def generate_search_path_list(default_file, git_root, command_line_file):
+    files = []
+    files.append(Path.home() / default_file)  # homedir
+    if git_root:
+        files.append(Path(git_root) / default_file)  # git root
+    files.append(default_file)
+    if command_line_file:
+        files.append(command_line_file)
+
+    resolved_files = []
+    for fn in files:
+        try:
+            resolved_files.append(Path(fn).resolve())
+        except OSError:
+            pass
+
+    # Unique the paths, keeping the last one
+    seen = set()
+    unique_files = []
+    for fn in reversed(resolved_files):
+        if fn not in seen:
+            unique_files.append(fn)
+            seen.add(fn)
+    unique_files.reverse()
+
+    return [str(fn) for fn in unique_files]
+
+
 def register_models(git_root, model_settings_fname, io, verbose=False):
     from aider.config import generate_search_path_list
     model_settings_files = generate_search_path_list(
