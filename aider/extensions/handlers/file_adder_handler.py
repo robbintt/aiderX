@@ -79,7 +79,7 @@ class FileAdderHandler(MutableContextHandler):
         """
         io = self.main_coder.io
         io.tool_output(
-            f"Running {self.handler_name} with {self.handler_model.name} to find files for the chat."
+            f"{self.handler_name}: finding files...\n"
         )
         self.num_reflections = 0
 
@@ -120,7 +120,7 @@ class FileAdderHandler(MutableContextHandler):
 
             spinner = None
             if self.main_coder.show_pretty():
-                spinner = WaitingSpinner(f"Waiting for {self.handler_model.name}")
+                spinner = WaitingSpinner(f"{self.handler_name}: Waiting for {self.handler_model.name}")
                 spinner.start()
 
             content = None
