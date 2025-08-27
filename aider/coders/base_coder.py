@@ -128,7 +128,7 @@ class Coder:
     file_watcher = None
     mcp_servers = None
     mcp_tools = None
-    handler_router = None
+    handler_manager = None
 
     @classmethod
     def create(
