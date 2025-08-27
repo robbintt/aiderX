@@ -152,9 +152,6 @@ class Coder:
         llm_command = kwargs.get("llm_command")
         if llm_command:
             main_model.llm_command = llm_command
-        if edit_format == "cbt":
-            kwargs["cbt_mode"] = True
-            edit_format = "diff-fenced"
 
         if edit_format == "code":
             edit_format = None
@@ -360,7 +357,6 @@ class Coder:
         auto_copy_context=False,
         auto_accept_architect=True,
         llm_command=None,
-        cbt_mode=False,
         mcp_servers=None,
         handlers=None,
     ):
@@ -377,7 +373,6 @@ class Coder:
 
         self.auto_copy_context = auto_copy_context
         self.auto_accept_architect = auto_accept_architect
-        self.cbt_mode = cbt_mode
 
         self.system_prompt_template = self.gpt_prompts.main_system
 
@@ -1272,10 +1267,7 @@ class Coder:
 
     def format_chat_chunks(self):
         self.choose_fence()
-        if self.cbt_mode:
-            system_prompt = prompts.cbt_system
-        else:
-            system_prompt = self.system_prompt_template
+        system_prompt = self.system_prompt_template
         main_sys = self.fmt_system_prompt(system_prompt)
         if self.main_model.system_prompt_prefix:
             main_sys = self.main_model.system_prompt_prefix + "\n" + main_sys

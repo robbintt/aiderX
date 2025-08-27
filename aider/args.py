@@ -51,7 +51,6 @@ def get_parser(default_config_files, git_root):
             for c in _aider_coders.__all__
             if hasattr(c, "edit_format") and c.edit_format is not None
         }
-        | {"cbt"}
     )
     group = parser.add_argument_group("Main model")
     group.add_argument(
@@ -679,12 +678,6 @@ def get_parser(default_config_files, git_root):
         action=argparse.BooleanOptionalAction,
         help="Run aider in your browser (default: False)",
         default=False,
-    )
-    group.add_argument(
-        "--cbt",
-        action="store_true",
-        default=False,
-        help="Use CBT mode for cognitive behavioral therapy (shortcut for --edit-format cbt).",
     )
     group.add_argument(
         "--copy-paste",

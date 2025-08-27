@@ -543,9 +543,7 @@ class InputOutput:
             show = self.format_files_for_input(rel_fnames, rel_read_only_fnames)
 
         prompt_prefix = ""
-        if commands.coder.cbt_mode:
-            prompt_prefix += "cbt"
-        elif edit_format:
+        if edit_format:
             prompt_prefix += edit_format
 
         if self.multiline_mode:

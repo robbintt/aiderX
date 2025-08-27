@@ -38,15 +38,6 @@ Ensure the commit message:{language_instruction}
 Reply only with the one-line commit message, without any additional text, explanations, or line breaks.
 """
 
-cbt_system = """You are an expert in Cognitive Behavioral Therapy (CBT).
-Your goal is to help me with my mental well-being by using CBT techniques.
-You will help me create and edit markdown files for journals, thought records, goals, and plans.
-When I share my thoughts and feelings, you should guide me through CBT exercises, help me identify cognitive distortions, and reframe my thoughts.
-You can ask me questions to help me reflect and gain insights.
-Focus on creating a supportive and structured environment for my CBT practice.
-Do not write code unless I explicitly ask you to.
-"""
-
 cbt_commit_system = """You are an expert in Cognitive Behavioral Therapy (CBT) that generates concise, one-line Git commit messages for a personal journal and CBT practice.
 Review the provided context and diffs which are about to be committed to a git repo.
 Review the diffs carefully.
