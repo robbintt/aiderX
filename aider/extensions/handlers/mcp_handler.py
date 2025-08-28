@@ -14,6 +14,7 @@ from ..handler import MutableContextHandler
 
 def check_mcp_deps():
     try:
+        import mcp  # noqa: F401
         from litellm import experimental_mcp_client  # noqa: F401
 
         return True
@@ -91,7 +92,15 @@ class McpHandler(MutableContextHandler):
     def __init__(self, main_coder, **kwargs):
         self.main_coder = main_coder
 
-        self.mcp_servers = self._initialize_mcp_servers(kwargs.get("servers"))
+        mcp_servers_config = kwargs.get("servers")
+        if mcp_servers_config:
+            if not install_mcp(self.main_coder.io):
+                self.main_coder.io.tool_warning(
+                    "Disabling mcp handler, dependencies not installed."
+                )
+                mcp_servers_config = None
+
+        self.mcp_servers = self._initialize_mcp_servers(mcp_servers_config)
         self.mcp_tools = []
         self.mcp_tools_by_server = []
         self.num_reflections = 0
@@ -100,13 +109,6 @@ class McpHandler(MutableContextHandler):
             self.max_reflections = int(reflections)
         else:
             self.max_reflections = self.main_coder.max_reflections
-
-        if self.mcp_servers:
-            if not install_mcp(self.main_coder.io):
-                self.main_coder.io.tool_warning(
-                    "Disabling mcp handler, dependencies not installed."
-                )
-                self.mcp_servers = None
 
         if self.mcp_servers:
             self._initialize_mcp_tools()
