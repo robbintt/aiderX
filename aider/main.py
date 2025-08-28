@@ -30,7 +30,6 @@ from aider.format_settings import format_settings, scrub_sensitive_info
 from aider.history import ChatSummary
 from aider.io import InputOutput
 from aider.llm import litellm  # noqa: F401; properly init litellm on launch
-from aider.mcp import load_mcp_servers
 from aider.models import ModelSettings
 from aider.onboarding import offer_openrouter_oauth, select_default_model
 from aider.repo import ANY_GIT_ERROR, GitRepo
@@ -407,7 +406,6 @@ def create_coder(
     commands,
     summarizer,
     analytics,
-    mcp_servers,
 ):
     if args.map_tokens is None:
         map_tokens = main_model.get_repo_map_tokens()
@@ -452,7 +450,6 @@ def create_coder(
         auto_accept_architect=args.auto_accept_architect,
         add_gitignore_files=args.add_gitignore_files,
         llm_command=args.llm_command,
-        mcp_servers=mcp_servers,
         handlers=args.handlers,
     )
     return coder
@@ -954,13 +951,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         args.stream = False
 
     try:
-
-        # Load MCP servers from config string or file
-        mcp_servers = load_mcp_servers(args.mcp_servers, args.mcp_servers_file, io, args.verbose)
-
-        if not mcp_servers:
-            mcp_servers = []
-
         coder = create_coder(
             main_model,
             args,
@@ -972,7 +962,6 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             commands,
             summarizer,
             analytics,
-            mcp_servers=mcp_servers,
         )
     except UnknownEditFormat as err:
         io.tool_error(str(err))
