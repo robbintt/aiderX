@@ -624,7 +624,6 @@ class RepoMap:
         if not mentioned_idents:
             mentioned_idents = set()
 
-        self.io.tool_warning(UPDATING_REPO_MAP_MESSAGE + "...")
         spin = Spinner(UPDATING_REPO_MAP_MESSAGE)
 
         ranked_tags = self.get_ranked_tags(
