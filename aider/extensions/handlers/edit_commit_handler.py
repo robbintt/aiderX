@@ -8,6 +8,9 @@ class EditCommitHandler(MutableContextHandler):
 
     entrypoints = ["llm_response"]
 
+    def __init__(self, main_coder, **kwargs):
+        self.main_coder = main_coder
+
     def handle(self, messages):
         """
         Apply edits and commit them.
