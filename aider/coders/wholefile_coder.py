@@ -13,6 +13,10 @@ class WholeFileCoder(Coder):
     edit_format = "whole"
     gpt_prompts = WholeFilePrompts()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.newly_added_files_for_reflection = set()
+
     def render_incremental_response(self, final):
         try:
             return self.get_edits(mode="diff")

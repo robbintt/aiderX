@@ -162,6 +162,7 @@ Quote!
         # Initialize WholeFileCoder with the temporary directory
         io = InputOutput(yes=True)
         coder = WholeFileCoder(main_model=self.GPT35, io=io)
+        coder.repo.get_tracked_files = MagicMock(return_value={sample_file})
 
         # Set the partial response content with the updated content
         coder.partial_response_content = f"{sample_file}\n```\nUpdated content\n```"
