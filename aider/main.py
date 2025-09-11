@@ -1085,7 +1085,10 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     if args.message:
         io.add_to_input_history(args.message)
         io.tool_output()
-        coder.run(with_message=args.message)
+        res = coder.run(with_message=args.message)
+        if isinstance(res, SwitchCoder):
+            io.tool_error("Commands which switch coders are not supported in non-interactive mode.")
+            return 1
         analytics.event("exit", reason="Completed --message")
         return
 
@@ -1093,7 +1096,12 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         try:
             message_from_file = io.read_text(args.message_file)
             io.tool_output()
-            coder.run(with_message=message_from_file)
+            res = coder.run(with_message=message_from_file)
+            if isinstance(res, SwitchCoder):
+                io.tool_error(
+                    "Commands which switch coders are not supported in non-interactive mode."
+                )
+                return 1
         except FileNotFoundError:
             io.tool_error(f"Message file not found: {args.message_file}")
             analytics.event("exit", reason="Message file not found")

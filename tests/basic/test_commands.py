@@ -1720,20 +1720,20 @@ class TestCommands(TestCase):
         commands = Commands(io, coder)
 
         # Test switching the main model
-        with self.assertRaises(SwitchCoder) as context:
-            commands.cmd_model("gpt-4")
+        res = commands.cmd_model("gpt-4")
+        self.assertIsInstance(res, SwitchCoder)
 
-        # Check that the SwitchCoder exception contains the correct model configuration
-        self.assertEqual(context.exception.kwargs.get("main_model").name, "gpt-4")
+        # Check that the SwitchCoder object contains the correct model configuration
+        self.assertEqual(res.kwargs.get("main_model").name, "gpt-4")
         self.assertEqual(
-            context.exception.kwargs.get("main_model").editor_model.name,
+            res.kwargs.get("main_model").editor_model.name,
             self.GPT35.editor_model.name,
         )
         self.assertEqual(
-            context.exception.kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
+            res.kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
         )
         # Check that the edit format is updated to the new model's default
-        self.assertEqual(context.exception.kwargs.get("edit_format"), "diff")
+        self.assertEqual(res.kwargs.get("edit_format"), "diff")
 
     def test_cmd_model_preserves_explicit_edit_format(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1746,13 +1746,13 @@ class TestCommands(TestCase):
         # Mock sanity check to avoid network calls
         with mock.patch("aider.models.sanity_check_models"):
             # Test switching the main model to gpt-4 (default 'whole')
-            with self.assertRaises(SwitchCoder) as context:
-                commands.cmd_model("gpt-4")
+            res = commands.cmd_model("gpt-4")
+            self.assertIsInstance(res, SwitchCoder)
 
-        # Check that the SwitchCoder exception contains the correct model configuration
-        self.assertEqual(context.exception.kwargs.get("main_model").name, "gpt-4")
+        # Check that the SwitchCoder object contains the correct model configuration
+        self.assertEqual(res.kwargs.get("main_model").name, "gpt-4")
         # Check that the edit format is preserved
-        self.assertEqual(context.exception.kwargs.get("edit_format"), "udiff")
+        self.assertEqual(res.kwargs.get("edit_format"), "udiff")
 
     def test_cmd_editor_model(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1760,14 +1760,14 @@ class TestCommands(TestCase):
         commands = Commands(io, coder)
 
         # Test switching the editor model
-        with self.assertRaises(SwitchCoder) as context:
-            commands.cmd_editor_model("gpt-4")
+        res = commands.cmd_editor_model("gpt-4")
+        self.assertIsInstance(res, SwitchCoder)
 
-        # Check that the SwitchCoder exception contains the correct model configuration
-        self.assertEqual(context.exception.kwargs.get("main_model").name, self.GPT35.name)
-        self.assertEqual(context.exception.kwargs.get("main_model").editor_model.name, "gpt-4")
+        # Check that the SwitchCoder object contains the correct model configuration
+        self.assertEqual(res.kwargs.get("main_model").name, self.GPT35.name)
+        self.assertEqual(res.kwargs.get("main_model").editor_model.name, "gpt-4")
         self.assertEqual(
-            context.exception.kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
+            res.kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
         )
 
     def test_cmd_weak_model(self):
@@ -1776,16 +1776,16 @@ class TestCommands(TestCase):
         commands = Commands(io, coder)
 
         # Test switching the weak model
-        with self.assertRaises(SwitchCoder) as context:
-            commands.cmd_weak_model("gpt-4")
+        res = commands.cmd_weak_model("gpt-4")
+        self.assertIsInstance(res, SwitchCoder)
 
-        # Check that the SwitchCoder exception contains the correct model configuration
-        self.assertEqual(context.exception.kwargs.get("main_model").name, self.GPT35.name)
+        # Check that the SwitchCoder object contains the correct model configuration
+        self.assertEqual(res.kwargs.get("main_model").name, self.GPT35.name)
         self.assertEqual(
-            context.exception.kwargs.get("main_model").editor_model.name,
+            res.kwargs.get("main_model").editor_model.name,
             self.GPT35.editor_model.name,
         )
-        self.assertEqual(context.exception.kwargs.get("main_model").weak_model.name, "gpt-4")
+        self.assertEqual(res.kwargs.get("main_model").weak_model.name, "gpt-4")
 
     def test_cmd_model_updates_default_edit_format(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1798,13 +1798,13 @@ class TestCommands(TestCase):
         # Mock sanity check to avoid network calls
         with mock.patch("aider.models.sanity_check_models"):
             # Test switching the main model to gpt-4 (default 'whole')
-            with self.assertRaises(SwitchCoder) as context:
-                commands.cmd_model("gpt-4")
+            res = commands.cmd_model("gpt-4")
+            self.assertIsInstance(res, SwitchCoder)
 
-        # Check that the SwitchCoder exception contains the correct model configuration
-        self.assertEqual(context.exception.kwargs.get("main_model").name, "gpt-4")
+        # Check that the SwitchCoder object contains the correct model configuration
+        self.assertEqual(res.kwargs.get("main_model").name, "gpt-4")
         # Check that the edit format is updated to the new model's default
-        self.assertEqual(context.exception.kwargs.get("edit_format"), "diff")
+        self.assertEqual(res.kwargs.get("edit_format"), "diff")
 
     def test_cmd_ask(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1817,8 +1817,8 @@ class TestCommands(TestCase):
         with mock.patch("aider.coders.Coder.run") as mock_run:
             mock_run.return_value = canned_reply
 
-            with self.assertRaises(SwitchCoder):
-                commands.cmd_ask(question)
+            res = commands.cmd_ask(question)
+            self.assertIsInstance(res, SwitchCoder)
 
             mock_run.assert_called_once()
             mock_run.assert_called_once_with(question)
@@ -2113,10 +2113,10 @@ class TestCommands(TestCase):
             commands_file = Path(repo_dir) / "test_commands.txt"
             commands_file.write_text("/ask Tell me about the code\n/model gpt-4\n")
 
-            # Mock run to raise SwitchCoder for /ask and /model
+            # Mock run to return SwitchCoder for /ask and /model
             def mock_run(cmd):
                 if cmd.startswith(("/ask", "/model")):
-                    raise SwitchCoder()
+                    return SwitchCoder()
                 return None
 
             with mock.patch.object(commands, "run", side_effect=mock_run):

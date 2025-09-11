@@ -17,14 +17,14 @@ def test_cmd_pkm_no_args_switches_mode():
     mock_io = MagicMock(spec=InputOutput)
     commands = Commands(mock_io, mock_coder)
 
-    with pytest.raises(SwitchCoder) as excinfo:
-        commands.cmd_pkm("")
+    res = commands.cmd_pkm("")
+    assert isinstance(res, SwitchCoder)
 
-    assert excinfo.value.pkm_mode is True
-    assert excinfo.value.edit_format == "diff-fenced"
-    assert excinfo.value.from_coder == mock_coder
-    assert excinfo.value.summarize_from_coder is False
-    assert excinfo.value.show_announcements is True  # default
+    assert res.pkm_mode is True
+    assert res.edit_format == "diff-fenced"
+    assert res.from_coder == mock_coder
+    assert res.summarize_from_coder is False
+    assert res.show_announcements is True  # default
 
 
 @patch("aider.coders.base_coder.Coder.create")
@@ -37,8 +37,8 @@ def test_cmd_pkm_with_args_creates_pkm_coder(mock_coder_create):
     mock_pkm_coder = MagicMock()
     mock_coder_create.return_value = mock_pkm_coder
 
-    with pytest.raises(SwitchCoder) as excinfo:
-        commands.cmd_pkm("some pkm request")
+    res = commands.cmd_pkm("some pkm request")
+    assert isinstance(res, SwitchCoder)
 
     mock_coder_create.assert_called_once_with(
         io=mock_io,
@@ -50,9 +50,9 @@ def test_cmd_pkm_with_args_creates_pkm_coder(mock_coder_create):
 
     mock_pkm_coder.run.assert_called_once_with("some pkm request")
 
-    assert excinfo.value.from_coder == mock_pkm_coder
-    assert excinfo.value.edit_format == "udiff"  # switches back to original coder's edit format
-    assert excinfo.value.pkm_mode is False
-    assert excinfo.value.summarize_from_coder is False
-    assert excinfo.value.show_announcements is False
-    assert excinfo.value.placeholder is None
+    assert res.from_coder == mock_pkm_coder
+    assert res.edit_format == "udiff"  # switches back to original coder's edit format
+    assert res.pkm_mode is False
+    assert res.summarize_from_coder is False
+    assert res.show_announcements is False
+    assert res.placeholder is None
