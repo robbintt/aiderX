@@ -44,13 +44,26 @@ Handlers will execute specific actions based on the LLM's response or other trig
 -   **`EditCommitHandler`**: This handler will take the structured edits parsed by the `Coder` and be responsible for applying them to the files and committing them to the repository.
 -   **Other Handlers**: Handlers like `FileAdderHandler` and `McpHandler` will continue to perform their specialized tasks, but they will be updated to use the `Agent`'s centralized `send_completion` method for any LLM interactions.
 
+## Evaluation
+
+The proposed architecture is a solid plan for improving modularity and separation of concerns. The breakdown of responsibilities among the `Agent`, `SessionManager`, `PromptBuilder`, `Coder`, and `Handlers` is logical and clear.
+
+To address the goal of minimizing changes to individual `Coder` subclasses and to ensure a smooth, incremental transition, the implementation order is crucial. The original list of priorities is good, but can be reordered to be more incremental. A step-by-step approach where new components are introduced and integrated before undertaking the largest changes to `BaseCoder` will reduce risk and make the process more manageable.
+
 ## Refactoring Priorities
 
-1.  **Centralize LLM Communication**: Move `send_completion` logic into the `Agent`.
-2.  **Decompose `send_message`**: Break down `BaseCoder.send_message` and move orchestration to the `Agent`.
-3.  **Implement `SessionManager`**: Move file context and message history management out of `BaseCoder`.
-4.  **Implement `PromptBuilder`**: Extract prompt formatting logic from `BaseCoder`.
-5.  **Refactor `Coder`**: Strip `BaseCoder` down to its core responsibility of parsing edits.
-6.  **Update Handlers**: Refactor all handlers to use the new centralized services provided by the `Agent` and other components.
+The refactoring should be done incrementally to minimize disruption. Here is a proposed order of operations:
+
+1.  **Implement `SessionManager` and Centralize State**: Create the `SessionManager` to handle chat state (`cur_messages`, `done_messages`) and file context (`abs_fnames`, `abs_read_only_fnames`). `BaseCoder` will be updated to delegate state management to an instance of `SessionManager`. This is a preparatory refactoring to isolate state.
+
+2.  **Centralize LLM Communication in `Agent`**: Create the `Agent` and move the `send_completion` logic into it. `BaseCoder` will then call `agent.send_completion`. This isolates LLM communication.
+
+3.  **Implement `PromptBuilder` and Centralize Prompt Logic**: Create the `PromptBuilder` and move prompt formatting logic like `format_messages` into it. `BaseCoder` will delegate prompt construction to the `PromptBuilder`.
+
+4.  **Move Orchestration from `Coder` to `Agent`**: This is the core of the refactoring. The main loop and orchestration logic from `BaseCoder.run` and `BaseCoder.send_message` will be moved into the `Agent`. The `Agent` will become the central orchestrator, using the `PromptBuilder`, `SessionManager`, and `Coder` as needed.
+
+5.  **Refactor `Coder` as a Stateless Parser**: With orchestration moved to the `Agent`, `BaseCoder` and its subclasses can be simplified. Their primary role will be to act as a stateless strategy for parsing LLM responses.
+
+6.  **Update Handlers**: Finally, update all handlers to use the new centralized services provided by the `Agent` for any LLM interactions or state access.
 
 This refactoring will result in a more robust and flexible architecture where each component has a clear and distinct responsibility.
