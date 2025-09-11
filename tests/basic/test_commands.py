@@ -2153,14 +2153,21 @@ class TestCommands(TestCase):
     def test_drop_specific_original_read_only_file(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create test file
             orig_read_only = Path(repo_dir) / "orig_read_only.txt"
             orig_read_only.write_text("Original read-only file")
 
             # Initialize commands with original read-only files
-            commands = Commands(io, coder, original_read_only_fnames=[str(orig_read_only)])
+            agent = mock.MagicMock()
+            agent.get_coder.return_value = coder
+            coder.agent = agent
+            commands = Commands(io, agent=agent, original_read_only_fnames=[str(orig_read_only)])
+            coder.commands = commands
 
             # Add file to the chat
             coder.abs_read_only_fnames.add(str(orig_read_only))
