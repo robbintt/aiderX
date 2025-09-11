@@ -217,8 +217,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         fname = Path("[abc].nonexistent")
 
@@ -234,8 +236,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=False)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Create a directory and add files to it using pathlib
         Path("test_dir").mkdir()
@@ -285,8 +289,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Create test files in root and subdirectory
         subdir = Path("subdir")
@@ -314,8 +320,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Create test files
         test_files = ["file1.txt", "file2.txt", "file3.py"]
@@ -346,8 +354,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Create a new file foo.bad which will fail to decode as utf-8
         with codecs.open("foo.bad", "w", encoding="iso-8859-15") as f:
@@ -541,8 +551,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             fname = Path("with[brackets].txt")
             fname.touch()
@@ -608,8 +620,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             dname = Path("with[brackets]")
             dname.mkdir()
@@ -626,8 +640,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             dname = Path("with[brackets]")
             dname.mkdir()
@@ -648,8 +664,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             fname = Path("file.txt")
             fname.touch()
@@ -663,8 +681,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             fname = Path("file with spaces.txt")
             fname.touch()
@@ -872,8 +892,10 @@ class TestCommands(TestCase):
         try:
             with GitTemporaryDirectory() as repo_dir:
                 io = InputOutput(pretty=False, fancy_input=False, yes=True)
-                coder = Coder.create(self.GPT35, None, io)
-                commands = Commands(io, coder)
+                agent = mock.MagicMock()
+                coder = Coder.create(self.GPT35, None, io, agent=agent)
+                agent.get_coder.return_value = coder
+                commands = coder.commands
 
                 # Create some test files in the repo
                 test_files = {
@@ -950,8 +972,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_image_file(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create a test image file
             test_file = Path(repo_dir) / "test_image.jpg"
@@ -997,8 +1021,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_glob_pattern(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create multiple test files
             test_files = ["test_file1.txt", "test_file2.txt", "other_file.txt"]
@@ -1032,8 +1058,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_recursive_glob(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create a directory structure with files
             (Path(repo_dir) / "subdir").mkdir()
@@ -1059,8 +1087,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_nonexistent_glob(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Test the /read-only command with a non-existent glob pattern
             with mock.patch.object(io, "tool_error") as mock_tool_error:
@@ -1079,8 +1109,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         fname = "file.txt"
         encoding = "utf-16"
@@ -1097,8 +1129,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create a test file
             test_file = Path("test_read_only.txt")
@@ -1152,8 +1186,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Mock the io.prompt_ask method to simulate user input
             io.prompt_ask = lambda *args, **kwargs: "y"
@@ -1169,8 +1205,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Define a command that prints to stderr and exits with non-zero status
             test_cmd = "echo 'error output' >&2 && exit 1"
@@ -1194,8 +1232,10 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             fname = Path("test.txt")
             fname.touch()
@@ -1267,8 +1307,10 @@ class TestCommands(TestCase):
         with GitTemporaryDirectory() as repo_dir:
             repo = git.Repo(repo_dir)
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Put in a random first commit
             filename = "first_file.txt"
@@ -1303,8 +1345,10 @@ class TestCommands(TestCase):
         with GitTemporaryDirectory() as repo_dir:
             repo = git.Repo(repo_dir)
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create and commit a new file
             filename = "new_file.txt"
@@ -1339,8 +1383,10 @@ class TestCommands(TestCase):
             ignored_file.write_text("This should be ignored")
 
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Try to add the ignored file
             commands.cmd_add(str(ignored_file))
@@ -1428,8 +1474,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only(self):
         with GitTemporaryDirectory():
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create a test file
             test_file = Path("test_read.txt")
@@ -1460,8 +1508,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_from_working_dir(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create a subdirectory and a test file within it
             subdir = Path(repo_dir) / "subdir"
@@ -1577,8 +1627,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_bulk_conversion(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create and add some test files
             test_files = ["test1.txt", "test2.txt", "test3.txt"]
@@ -1610,8 +1662,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_multiple_files(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create multiple test files
             test_files = ["test_file1.txt", "test_file2.txt", "test_file3.txt"]
@@ -1641,8 +1695,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_tilde_path(self):
         with GitTemporaryDirectory():
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create a test file in the user's home directory
             home_dir = os.path.expanduser("~")
@@ -1703,8 +1759,10 @@ class TestCommands(TestCase):
         with GitTemporaryDirectory() as repo_dir:
             repo = git.Repo(repo_dir)
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create and commit a file
             filename = "test_file.txt"
@@ -1767,8 +1825,10 @@ class TestCommands(TestCase):
 
     def test_cmd_model(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         agent = mock.MagicMock()
         coder.agent = agent
@@ -1822,8 +1882,10 @@ class TestCommands(TestCase):
 
     def test_cmd_editor_model(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         agent = mock.MagicMock()
         coder.agent = agent
@@ -1844,8 +1906,10 @@ class TestCommands(TestCase):
 
     def test_cmd_weak_model(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         agent = mock.MagicMock()
         coder.agent = agent
@@ -1894,8 +1958,10 @@ class TestCommands(TestCase):
 
     def test_cmd_ask(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         question = "What is the meaning of life?"
         canned_reply = "The meaning of life is 42."
@@ -1917,8 +1983,10 @@ class TestCommands(TestCase):
         with GitTemporaryDirectory() as repo_dir:
             repo = git.Repo(repo_dir)
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create and commit a file
             filename = "test_file.py"
@@ -2044,7 +2112,9 @@ class TestCommands(TestCase):
     def test_reset_with_no_original_read_only_files(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
 
             # Create test files
             added_file = Path(repo_dir) / "added_file.txt"
@@ -2054,11 +2124,7 @@ class TestCommands(TestCase):
             added_read_only.write_text("Added read-only file")
 
             # Initialize commands with no original read-only files
-            agent = mock.MagicMock()
-            agent.get_coder.return_value = coder
-            coder.agent = agent
-            commands = Commands(io, agent=agent)
-            coder.commands = commands
+            commands = coder.commands
 
             # Add files to the chat
             coder.abs_fnames.add(str(added_file))
@@ -2085,8 +2151,10 @@ class TestCommands(TestCase):
 
     def test_cmd_reasoning_effort(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Test with numeric values
         with mock.patch.object(io, "tool_output") as mock_tool_output:
@@ -2112,7 +2180,9 @@ class TestCommands(TestCase):
     def test_drop_with_original_read_only_files(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
 
             # Create test files
             orig_read_only = Path(repo_dir) / "orig_read_only.txt"
@@ -2184,7 +2254,9 @@ class TestCommands(TestCase):
     def test_drop_with_no_original_read_only_files(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
-            coder = Coder.create(self.GPT35, None, io)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
 
             # Create test files
             added_file = Path(repo_dir) / "added_file.txt"
@@ -2194,8 +2266,7 @@ class TestCommands(TestCase):
             added_read_only.write_text("Added read-only file")
 
             # Initialize commands with no original read-only files
-            commands = Commands(io, agent=agent)
-            coder.commands = commands
+            commands = coder.commands
 
             # Add files to the chat
             coder.abs_fnames.add(str(added_file))
