@@ -10,8 +10,8 @@ from aider.io import InputOutput
 class MockCoder:
     def __init__(self):
         self.edit_format = "udiff"
-        self.pkm_mode = False
         self.agent = None
+        self.handler_manager = None
 
 
 def test_cmd_pkm_no_args_switches_mode():
@@ -24,12 +24,10 @@ def test_cmd_pkm_no_args_switches_mode():
     commands.cmd_pkm("")
     agent.schedule_switch_coder.assert_called_once()
 
-    kwargs = agent.schedule_switch_coder.call_args.kwargs
-    assert kwargs.get("pkm_mode") is True
-    assert kwargs.get("edit_format") == "diff-fenced"
-    assert kwargs.get("from_coder") == mock_coder
-    assert kwargs.get("summarize_from_coder") is False
-    assert kwargs.get("show_announcements") is True  # default
+    assert excinfo.value.handlers == ["pkm"]
+    assert excinfo.value.edit_format == "whole"
+    assert excinfo.value.from_coder == mock_coder
+    assert excinfo.value.summarize_from_coder is False
 
 
 @patch("aider.coders.base_coder.Coder.create")
@@ -51,16 +49,15 @@ def test_cmd_pkm_with_args_creates_pkm_coder(mock_coder_create):
     mock_coder_create.assert_called_once_with(
         io=mock_io,
         from_coder=mock_coder,
-        edit_format="diff-fenced",
-        pkm_mode=True,
+        edit_format="whole",
+        handlers=["pkm"],
         summarize_from_coder=False,
     )
 
     mock_pkm_coder.run.assert_called_once_with("some pkm request")
 
-    assert kwargs.get("from_coder") == mock_pkm_coder
-    assert kwargs.get("edit_format") == "udiff"  # switches back to original coder's edit format
-    assert kwargs.get("pkm_mode") is False
-    assert kwargs.get("summarize_from_coder") is False
-    assert kwargs.get("show_announcements") is False
-    assert kwargs.get("placeholder") is None
+    assert excinfo.value.from_coder == mock_pkm_coder
+    assert excinfo.value.edit_format == "udiff"  # switches back to original coder's edit format
+    assert excinfo.value.handlers is None
+    assert excinfo.value.summarize_from_coder is False
+    assert excinfo.value.show_announcements is False
