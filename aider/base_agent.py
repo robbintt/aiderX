@@ -1,14 +1,98 @@
+from aider import urls
 from .coders import Coder
+from .coders.base_coder import UnknownEditFormat
 
 
 class BaseAgent:
-    def __init__(self, coder, args, analytics):
-        self.coder = coder
-        self.coder.agent = self
+    def __init__(self, args, analytics, io):
+        self.coder = None
         self.args = args
         self.analytics = analytics
-        self.io = coder.io
+        self.io = io
         self.next_coder_kwargs = None
+
+    def create_coder(
+        self,
+        main_model,
+        repo,
+        fnames,
+        read_only_fnames,
+        lint_cmds,
+        commands,
+        summarizer,
+    ):
+        if self.args.map_tokens is None:
+            map_tokens = main_model.get_repo_map_tokens()
+        else:
+            map_tokens = self.args.map_tokens
+
+        # Track auto-commits configuration
+        self.analytics.event("auto_commits", enabled=bool(self.args.auto_commits))
+
+        coder = Coder.create(
+            main_model=main_model,
+            edit_format=self.args.edit_format,
+            io=self.io,
+            repo=repo,
+            fnames=fnames,
+            read_only_fnames=read_only_fnames,
+            show_diffs=self.args.show_diffs,
+            auto_commits=self.args.auto_commits,
+            dirty_commits=self.args.dirty_commits,
+            dry_run=self.args.dry_run,
+            map_tokens=map_tokens,
+            verbose=self.args.verbose,
+            stream=self.args.stream,
+            use_git=self.args.git,
+            restore_chat_history=self.args.restore_chat_history,
+            auto_lint=self.args.auto_lint,
+            auto_test=self.args.auto_test,
+            lint_cmds=lint_cmds,
+            test_cmd=self.args.test_cmd,
+            commands=commands,
+            summarizer=summarizer,
+            analytics=self.analytics,
+            map_refresh=self.args.map_refresh,
+            cache_prompts=self.args.cache_prompts,
+            map_mul_no_files=self.args.map_multiplier_no_files,
+            num_cache_warming_pings=self.args.cache_keepalive_pings,
+            suggest_shell_commands=self.args.suggest_shell_commands,
+            chat_language=self.args.chat_language,
+            commit_language=self.args.commit_language,
+            detect_urls=self.args.detect_urls,
+            auto_copy_context=self.args.copy_paste,
+            auto_accept_architect=self.args.auto_accept_architect,
+            add_gitignore_files=self.args.add_gitignore_files,
+            llm_command=self.args.llm_command,
+            handlers=self.args.handlers,
+        )
+        return coder
+
+    def setup_coder(
+        self, main_model, repo, fnames, read_only_fnames, lint_cmds, commands, summarizer
+    ):
+        try:
+            self.coder = self.create_coder(
+                main_model,
+                repo,
+                fnames,
+                read_only_fnames,
+                lint_cmds,
+                commands,
+                summarizer,
+            )
+        except UnknownEditFormat as err:
+            self.io.tool_error(str(err))
+            self.io.offer_url(urls.edit_formats, "Open documentation about edit formats?")
+            self.analytics.event("exit", reason="Unknown edit format")
+            return None
+        except ValueError as err:
+            self.io.tool_error(str(err))
+            self.analytics.event("exit", reason="ValueError during coder creation")
+            return None
+
+        self.coder.agent = self
+        return self.coder
 
     def run_interactive_loop(self):
         try:
