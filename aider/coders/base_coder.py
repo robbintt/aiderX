@@ -562,6 +562,16 @@ class Coder:
         else:
             self.handler_manager = None
 
+        from aider.extensions.handler_manager import HandlerManager
+        default_handlers = [
+            "edit-commit",
+        ]
+        all_handlers = default_handlers + (handlers or [])
+        if not self.handler_manager:
+            self.handler_manager = HandlerManager(self, all_handlers)
+        else:
+            self.handler_manager.handlers.extend(HandlerManager(self, default_handlers).handlers)
+
     def setup_lint_cmds(self, lint_cmds):
         if not lint_cmds:
             return
@@ -1605,7 +1615,11 @@ class Coder:
         # TAZR 2025-08-14 - apply edits before adding files and doing tool calls
         # no longer skip adding files or tool calls if interrupted
         # TODO WIP - this also governs streaming, which is why we might be getting multiple changes
-        edited = self.apply_updates()
+        if self.handler_manager:
+            messages = self.format_messages().all_messages()
+            self.handler_manager.run(messages, "llm_response")
+
+        edited = self.aider_edited_files
 
         # idea for "different reflection if edited"
         # something like "i see you already provided edits, this file was mentioned, so
@@ -1626,15 +1640,6 @@ class Coder:
                 return
         except KeyboardInterrupt:
             interrupted = True
-
-        if edited:
-            self.aider_edited_files.update(edited)
-            saved_message = self.auto_commit(edited)
-
-            if not saved_message and hasattr(self.gpt_prompts, "files_content_gpt_edits_no_repo"):
-                saved_message = self.gpt_prompts.files_content_gpt_edits_no_repo
-
-            self.move_back_cur_messages(saved_message)
 
         if self.reflected_message:
             return
