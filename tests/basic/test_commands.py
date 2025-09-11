@@ -37,8 +37,10 @@ class TestCommands(TestCase):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         from aider.coders import Coder
 
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Call the cmd_add method with 'foo.txt' and 'bar.txt' as a single string
         commands.cmd_add("foo.txt bar.txt")
@@ -50,8 +52,10 @@ class TestCommands(TestCase):
     def test_cmd_copy(self):
         # Initialize InputOutput and Coder instances
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Add some assistant messages to the chat history
         coder.done_messages = [
@@ -80,8 +84,10 @@ class TestCommands(TestCase):
     def test_cmd_copy_with_cur_messages(self):
         # Initialize InputOutput and Coder instances
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
-        coder = Coder.create(self.GPT35, None, io)
-        commands = Commands(io, coder)
+        agent = mock.MagicMock()
+        coder = Coder.create(self.GPT35, None, io, agent=agent)
+        agent.get_coder.return_value = coder
+        commands = coder.commands
 
         # Add messages to done_messages and cur_messages
         coder.done_messages = [
@@ -350,8 +356,10 @@ class TestCommands(TestCase):
             with open(f"{tempdir}/test.txt", "w") as f:
                 f.write("test")
 
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Run the cmd_git method with the arguments "commit -a -m msg"
             commands.cmd_git("add test.txt")
@@ -536,9 +544,11 @@ class TestCommands(TestCase):
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
             from aider.coders import Coder
 
-            coder = Coder.create(Model("claude-3-5-sonnet-20240620"), None, io)
+            agent = mock.MagicMock()
+            coder = Coder.create(Model("claude-3-5-sonnet-20240620"), None, io, agent=agent)
+            agent.get_coder.return_value = coder
             print(coder.get_announcements())
-            commands = Commands(io, coder)
+            commands = coder.commands
 
             commands.cmd_add("*.txt")
 
@@ -925,8 +935,10 @@ class TestCommands(TestCase):
 
             # Test with vision model
             vision_model = Model("gpt-4-vision-preview")
-            vision_coder = Coder.create(vision_model, None, io)
-            vision_commands = Commands(io, vision_coder)
+            agent = mock.MagicMock()
+            vision_coder = Coder.create(vision_model, None, io, agent=agent)
+            agent.get_coder.return_value = vision_coder
+            vision_commands = vision_coder.commands
 
             vision_commands.cmd_read_only(str(test_file))
             self.assertEqual(len(vision_coder.abs_read_only_fnames), 1)
@@ -1363,14 +1375,17 @@ class TestCommands(TestCase):
                 aider_ignore_file=str(aignore),
             )
 
+            agent = mock.MagicMock()
             coder = Coder.create(
                 self.GPT35,
                 None,
                 io,
                 fnames=fnames,
                 repo=repo,
+                agent=agent,
             )
-            commands = Commands(io, coder)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             commands.cmd_add(f"{fname1} {fname2} {fname3}")
 
@@ -1947,7 +1962,11 @@ class TestCommands(TestCase):
             added_read_only.write_text("Added read-only file")
 
             # Initialize commands with original read-only files
-            commands = Commands(io, coder, original_read_only_fnames=[str(orig_read_only)])
+            agent = mock.MagicMock()
+            agent.get_coder.return_value = coder
+            coder.agent = agent
+            commands = Commands(io, original_read_only_fnames=[str(orig_read_only)], agent=agent)
+            coder.commands = commands
 
             # Add files to the chat
             coder.abs_read_only_fnames.add(str(orig_read_only))
@@ -1991,7 +2010,11 @@ class TestCommands(TestCase):
             added_read_only.write_text("Added read-only file")
 
             # Initialize commands with no original read-only files
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            agent.get_coder.return_value = coder
+            coder.agent = agent
+            commands = Commands(io, agent=agent)
+            coder.commands = commands
 
             # Add files to the chat
             coder.abs_fnames.add(str(added_file))
@@ -2180,10 +2203,14 @@ class TestCommands(TestCase):
             orig_coder.root = repo_dir  # Set root for path operations
 
             # Replace its commands object with one that has the original_read_only_fnames
+            agent = mock.MagicMock()
+            agent.get_coder.return_value = orig_coder
+            orig_coder.agent = agent
             orig_coder.commands = Commands(
-                io, orig_coder, original_read_only_fnames=list(original_read_only_fnames_set)
+                io,
+                original_read_only_fnames=list(original_read_only_fnames_set),
+                agent=agent,
             )
-            orig_coder.commands.coder = orig_coder
 
             # Populate coder's file sets
             orig_coder.abs_read_only_fnames.add(str(orig_ro_path))
