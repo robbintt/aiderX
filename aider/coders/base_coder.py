@@ -556,21 +556,16 @@ class Coder:
                 self.io.tool_output("JSON Schema:")
                 self.io.tool_output(json.dumps(self.functions, indent=4))
 
-        if handlers:
-            from aider.extensions.handler_manager import HandlerManager
-            self.handler_manager = HandlerManager(self, handlers)
-        else:
-            self.handler_manager = None
-
         from aider.extensions.handler_manager import HandlerManager
+
         default_handlers = [
             "edit-commit",
         ]
-        all_handlers = default_handlers + (handlers or [])
-        if not self.handler_manager:
+        all_handlers = (handlers or []) + default_handlers
+        if all_handlers:
             self.handler_manager = HandlerManager(self, all_handlers)
         else:
-            self.handler_manager.handlers.extend(HandlerManager(self, default_handlers).handlers)
+            self.handler_manager = None
 
     def setup_lint_cmds(self, lint_cmds):
         if not lint_cmds:
