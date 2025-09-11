@@ -893,45 +893,24 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     agent = BaseAgent(args, analytics, io)
     commands.agent = agent
-    coder = agent.setup_coder(
-        main_model,
-        repo,
-        fnames,
-        read_only_fnames,
-        lint_cmds,
-        commands,
-        summarizer,
-    )
-    if not coder:
-        return 1
+
+    agent.main_model = main_model
+    agent.repo = repo
+    agent.fnames = fnames
+    agent.read_only_fnames = read_only_fnames
+    agent.lint_cmds = lint_cmds
+    agent.commands = commands
+    agent.summarizer = summarizer
 
     if return_coder:
+        coder = agent.get_coder()
         analytics.event("exit", reason="Returning coder object")
         return coder
 
-    ignores = []
-    if git_root:
-        ignores.append(str(Path(git_root) / ".gitignore"))
-    if args.aiderignore:
-        ignores.append(args.aiderignore)
-
-    if args.watch_files:
-        file_watcher = FileWatcher(
-            coder,
-            gitignores=ignores,
-            verbose=args.verbose,
-            analytics=analytics,
-            root=str(Path.cwd()) if args.subtree_only else None,
-        )
-        coder.file_watcher = file_watcher
-
-    if args.copy_paste:
-        analytics.event("copy-paste mode")
-        ClipboardWatcher(coder.io, verbose=args.verbose)
-
-    coder.show_announcements()
-
     if args.show_prompts:
+        coder = agent.get_coder()
+        if not coder:
+            return 1
         coder.cur_messages += [
             dict(role="user", content="Hello!"),
         ]
@@ -941,14 +920,14 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         return
 
     if args.lint:
-        coder.commands.cmd_lint(fnames=fnames)
+        agent.commands.cmd_lint(fnames=fnames)
 
     if args.test:
         if not args.test_cmd:
             io.tool_error("No --test-cmd provided.")
             analytics.event("exit", reason="No test command provided")
             return 1
-        coder.commands.cmd_test(args.test_cmd)
+        agent.commands.cmd_test(args.test_cmd)
         if io.placeholder:
             agent.run(with_message=io.placeholder)
 
@@ -956,20 +935,25 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         if args.dry_run:
             io.tool_output("Dry run enabled, skipping commit.")
         else:
-            coder.commands.cmd_commit()
+            agent.commands.cmd_commit()
 
     if args.lint or args.test or args.commit:
         analytics.event("exit", reason="Completed lint/test/commit")
         return
 
     if args.show_repo_map:
-        repo_map = coder.get_repo_map()
-        if repo_map:
-            io.tool_output(repo_map)
+        coder = agent.get_coder()
+        if coder:
+            repo_map = coder.get_repo_map()
+            if repo_map:
+                io.tool_output(repo_map)
         analytics.event("exit", reason="Showed repo map")
         return
 
     if args.apply:
+        coder = agent.get_coder()
+        if not coder:
+            return 1
         content = io.read_text(args.apply)
         if content is None:
             analytics.event("exit", reason="Failed to read apply content")

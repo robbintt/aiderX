@@ -453,8 +453,8 @@ class Coder:
 
         self.show_diffs = show_diffs
 
-        self.commands = commands or Commands(self.io, self, agent=self.agent)
-        self.commands.coder = self
+        self.commands = commands or Commands(self.io, agent=self.agent)
+        # self.commands.coder = self ##
 
         self.repo = repo
         if use_git and self.repo is None:

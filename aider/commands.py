@@ -28,13 +28,18 @@ from .dump import dump  # noqa: F401
 
 
 class Commands:
+    @property
+    def coder(self):
+        if not self.agent:
+            return None
+        return self.agent.get_coder()
+
     voice = None
     scraper = None
 
     def clone(self):
         return Commands(
             self.io,
-            None,
             voice_language=self.voice_language,
             verify_ssl=self.verify_ssl,
             args=self.args,
@@ -48,7 +53,6 @@ class Commands:
     def __init__(
         self,
         io,
-        coder,
         voice_language=None,
         voice_input_device=None,
         voice_format=None,
@@ -61,7 +65,6 @@ class Commands:
         agent=None,
     ):
         self.io = io
-        self.coder = coder
         self.agent = agent
         self.parser = parser
         self.args = args

@@ -1,15 +1,35 @@
 from aider import urls
 from .coders import Coder
 from .coders.base_coder import UnknownEditFormat
+from .watch import FileWatcher
+from .copypaste import ClipboardWatcher
+from pathlib import Path
 
 
 class BaseAgent:
     def __init__(self, args, analytics, io):
         self.coder = None
+
         self.args = args
         self.analytics = analytics
         self.io = io
         self.next_coder_kwargs = None
+
+        self.main_model = None
+        self.repo = None
+        self.fnames = None
+        self.read_only_fnames = None
+        self.lint_cmds = None
+        self.commands = None
+        self.summarizer = None
+        self.is_setup = False
+
+    def get_coder(self):
+        if self.coder:
+            return self.coder
+        if self._setup_coder():
+            self._post_coder_setup()
+        return self.coder
 
     def create_coder(
         self,
@@ -68,28 +88,55 @@ class BaseAgent:
         )
         return coder
 
-    def setup_coder(
-        self, main_model, repo, fnames, read_only_fnames, lint_cmds, commands, summarizer
-    ):
+    def _post_coder_setup(self):
+        if self.is_setup or not self.coder:
+            return
+        self.is_setup = True
+
+        self.coder.show_announcements()
+
+        git_root = self.repo.root if self.repo else None
+
+        ignores = []
+        if git_root:
+            ignores.append(str(Path(git_root) / ".gitignore"))
+        if self.args.aiderignore:
+            ignores.append(self.args.aiderignore)
+
+        if self.args.watch_files:
+            file_watcher = FileWatcher(
+                self.coder,
+                gitignores=ignores,
+                verbose=self.args.verbose,
+                analytics=self.analytics,
+                root=str(Path.cwd()) if self.args.subtree_only else None,
+            )
+            self.coder.file_watcher = file_watcher
+
+        if self.args.copy_paste:
+            self.analytics.event("copy-paste mode")
+            ClipboardWatcher(self.coder.io, verbose=self.args.verbose)
+
+    def _setup_coder(self):
         try:
             self.coder = self.create_coder(
-                main_model,
-                repo,
-                fnames,
-                read_only_fnames,
-                lint_cmds,
-                commands,
-                summarizer,
+                self.main_model,
+                self.repo,
+                self.fnames,
+                self.read_only_fnames,
+                self.lint_cmds,
+                self.commands,
+                self.summarizer,
             )
         except UnknownEditFormat as err:
             self.io.tool_error(str(err))
             self.io.offer_url(urls.edit_formats, "Open documentation about edit formats?")
             self.analytics.event("exit", reason="Unknown edit format")
-            return None
+            return
         except ValueError as err:
             self.io.tool_error(str(err))
             self.analytics.event("exit", reason="ValueError during coder creation")
-            return None
+            return
 
         self.coder.agent = self
         return self.coder
@@ -100,14 +147,17 @@ class BaseAgent:
                 try:
                     if not self.io.placeholder:
                         self.coder.copy_context()
+
                     user_message = self.get_input()
                     self.coder.run_one(user_message, preproc=True)
+
                     if self.next_coder_kwargs:
                         kwargs = self.next_coder_kwargs
                         self.next_coder_kwargs = None
                         return kwargs
                     self.coder.show_undo_hint()
                 except KeyboardInterrupt:
+                    # keep this inside the loop so we can continue after a ^C
                     self.coder.keyboard_interrupt()
         except EOFError:
             self.analytics.event("exit", reason="EOF")
@@ -135,11 +185,16 @@ class BaseAgent:
         self.next_coder_kwargs = kwargs
 
     def run(self, with_message=None):
+        coder = self.get_coder()
+        if not coder:
+            return
+
         if with_message:
             self.coder.run(with_message=with_message)
             return
 
         while True:
+            # This is the interactive loop
             self.coder.ok_to_warm_cache = bool(self.args.cache_keepalive_pings)
             switch_kwargs = self.run_interactive_loop()
 
@@ -157,8 +212,4 @@ class BaseAgent:
             kwargs.update(switch_kwargs)
             if "show_announcements" in kwargs:
                 del kwargs["show_announcements"]
-
             self.coder = Coder.create(agent=self, **kwargs)
-
-            if switch_kwargs.get("show_announcements") is not False:
-                self.coder.show_announcements()
