@@ -27,16 +27,6 @@ from aider.utils import is_image_file
 from .dump import dump  # noqa: F401
 
 
-class SwitchCoder:
-    def __init__(self, placeholder=None, **kwargs):
-        self.kwargs = kwargs
-        self.placeholder = placeholder
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        if "show_announcements" not in kwargs:
-            self.show_announcements = True
-
-
 class Commands:
     voice = None
     scraper = None
@@ -52,6 +42,7 @@ class Commands:
             verbose=self.verbose,
             editor=self.editor,
             original_read_only_fnames=self.original_read_only_fnames,
+            agent=self.agent,
         )
 
     def __init__(
@@ -67,9 +58,11 @@ class Commands:
         verbose=False,
         editor=None,
         original_read_only_fnames=None,
+        agent=None,
     ):
         self.io = io
         self.coder = coder
+        self.agent = agent
         self.parser = parser
         self.args = args
         self.verbose = verbose
@@ -113,7 +106,7 @@ class Commands:
             # If the user was using the old model's default, switch to the new model's default
             new_edit_format = model.edit_format
 
-        return SwitchCoder(main_model=model, edit_format=new_edit_format)
+        self.agent.schedule_switch_coder(main_model=model, edit_format=new_edit_format)
 
     def cmd_editor_model(self, args):
         "Switch the Editor Model to a new LLM"
@@ -125,7 +118,7 @@ class Commands:
             weak_model=self.coder.main_model.weak_model.name,
         )
         models.sanity_check_models(self.io, model)
-        return SwitchCoder(main_model=model)
+        self.agent.schedule_switch_coder(main_model=model)
 
     def cmd_weak_model(self, args):
         "Switch the Weak Model to a new LLM"
@@ -137,7 +130,7 @@ class Commands:
             weak_model=model_name,
         )
         models.sanity_check_models(self.io, model)
-        return SwitchCoder(main_model=model)
+        self.agent.schedule_switch_coder(main_model=model)
 
     def cmd_chat_mode(self, args):
         "Switch to a new chat mode"
@@ -201,7 +194,7 @@ class Commands:
         elif ef == "ask":
             summarize_from_coder = False
 
-        return SwitchCoder(
+        self.agent.schedule_switch_coder(
             from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=summarize_from_coder,
@@ -1153,7 +1146,7 @@ class Commands:
             map_tokens = 0
             map_mul_no_files = 1
 
-        return SwitchCoder(
+        self.agent.schedule_switch_coder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,
@@ -1212,7 +1205,7 @@ class Commands:
         coder.run(user_msg)
 
         # Use the provided placeholder if any
-        return SwitchCoder(
+        self.agent.schedule_switch_coder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,

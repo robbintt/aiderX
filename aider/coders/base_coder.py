@@ -31,7 +31,7 @@ from rich.console import Console
 
 from aider import __version__, models, prompts, urls, utils
 from aider.analytics import Analytics
-from aider.commands import Commands, SwitchCoder
+from aider.commands import Commands
 from aider.exceptions import LiteLLMExceptions
 from aider.history import ChatSummary
 from aider.io import ConfirmGroup, InputOutput
@@ -132,6 +132,7 @@ class Coder:
         io=None,
         from_coder=None,
         summarize_from_coder=True,
+        agent=None,
         **kwargs,
     ):
         import aider.coders as coders
@@ -193,6 +194,12 @@ class Coder:
 
             kwargs = use_kwargs
             from_coder.ok_to_warm_cache = False
+
+        # If we are switching from another coder, inherit its agent unless a new one is provided.
+        if agent is None and from_coder:
+            agent = from_coder.agent
+        if agent:
+            kwargs["agent"] = agent
 
         for coder in coders.__all__:
             if hasattr(coder, "edit_format") and coder.edit_format == edit_format:
@@ -351,7 +358,9 @@ class Coder:
         auto_accept_architect=True,
         llm_command=None,
         handlers=None,
+        agent=None,
     ):
+        self.agent = agent
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
 
@@ -444,7 +453,7 @@ class Coder:
 
         self.show_diffs = show_diffs
 
-        self.commands = commands or Commands(self.io, self)
+        self.commands = commands or Commands(self.io, self, agent=self.agent)
         self.commands.coder = self
 
         self.repo = repo
@@ -903,9 +912,7 @@ class Coder:
     def run(self, with_message=None, preproc=True):
         if with_message:
             self.io.user_input(with_message)
-            res = self.run_one(with_message, preproc)
-            if isinstance(res, SwitchCoder):
-                return res
+            self.run_one(with_message, preproc)
             return self.partial_response_content
 
         # Interactive mode is now handled by BaseAgent.
@@ -946,10 +953,7 @@ class Coder:
         self.init_before_message()
 
         if preproc:
-            processed_input = self.preproc_user_input(user_message)
-            if isinstance(processed_input, SwitchCoder):
-                return processed_input
-            message = processed_input
+            message = self.preproc_user_input(user_message)
         else:
             message = user_message
 

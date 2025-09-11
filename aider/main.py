@@ -24,7 +24,7 @@ from aider.coders import Coder
 from aider.base_agent import BaseAgent
 from aider.config import Config, get_git_root
 from aider.coders.base_coder import UnknownEditFormat
-from aider.commands import Commands, SwitchCoder
+from aider.commands import Commands
 from aider.copypaste import ClipboardWatcher
 from aider.deprecated import handle_deprecated_model_args
 from aider.format_settings import format_settings, scrub_sensitive_info
@@ -1085,10 +1085,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     if args.message:
         io.add_to_input_history(args.message)
         io.tool_output()
-        res = coder.run(with_message=args.message)
-        if isinstance(res, SwitchCoder):
-            io.tool_error("Commands which switch coders are not supported in non-interactive mode.")
-            return 1
+        coder.run(with_message=args.message)
         analytics.event("exit", reason="Completed --message")
         return
 
@@ -1096,12 +1093,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         try:
             message_from_file = io.read_text(args.message_file)
             io.tool_output()
-            res = coder.run(with_message=message_from_file)
-            if isinstance(res, SwitchCoder):
-                io.tool_error(
-                    "Commands which switch coders are not supported in non-interactive mode."
-                )
-                return 1
+            coder.run(with_message=message_from_file)
         except FileNotFoundError:
             io.tool_error(f"Message file not found: {args.message_file}")
             analytics.event("exit", reason="Message file not found")
