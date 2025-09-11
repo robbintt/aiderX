@@ -81,6 +81,12 @@ class Commands:
         # Store the original read-only filenames provided via args.read
         self.original_read_only_fnames = set(original_read_only_fnames or [])
 
+    def schedule_switch_coder(self, **kwargs):
+        if not self.agent:
+            self.io.tool_error("This command is not supported in non-interactive mode.")
+            return
+        self.agent.schedule_switch_coder(**kwargs)
+
     def cmd_model(self, args):
         "Switch the Main Model to a new LLM"
 
@@ -106,7 +112,7 @@ class Commands:
             # If the user was using the old model's default, switch to the new model's default
             new_edit_format = model.edit_format
 
-        self.agent.schedule_switch_coder(main_model=model, edit_format=new_edit_format)
+        self.schedule_switch_coder(main_model=model, edit_format=new_edit_format)
 
     def cmd_editor_model(self, args):
         "Switch the Editor Model to a new LLM"
@@ -118,7 +124,7 @@ class Commands:
             weak_model=self.coder.main_model.weak_model.name,
         )
         models.sanity_check_models(self.io, model)
-        self.agent.schedule_switch_coder(main_model=model)
+        self.schedule_switch_coder(main_model=model)
 
     def cmd_weak_model(self, args):
         "Switch the Weak Model to a new LLM"
@@ -130,7 +136,7 @@ class Commands:
             weak_model=model_name,
         )
         models.sanity_check_models(self.io, model)
-        self.agent.schedule_switch_coder(main_model=model)
+        self.schedule_switch_coder(main_model=model)
 
     def cmd_chat_mode(self, args):
         "Switch to a new chat mode"
@@ -194,7 +200,7 @@ class Commands:
         elif ef == "ask":
             summarize_from_coder = False
 
-        self.agent.schedule_switch_coder(
+        self.schedule_switch_coder(
             from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=summarize_from_coder,
@@ -1146,7 +1152,7 @@ class Commands:
             map_tokens = 0
             map_mul_no_files = 1
 
-        self.agent.schedule_switch_coder(
+        self.schedule_switch_coder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,
@@ -1205,7 +1211,7 @@ class Commands:
         coder.run(user_msg)
 
         # Use the provided placeholder if any
-        self.agent.schedule_switch_coder(
+        self.schedule_switch_coder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,
@@ -1468,11 +1474,7 @@ class Commands:
                 continue
 
             self.io.tool_output(f"\nExecuting: {cmd}")
-            res = self.run(cmd)
-            if isinstance(res, SwitchCoder):
-                self.io.tool_error(
-                    f"Command '{cmd}' is only supported in interactive mode, skipping."
-                )
+            self.run(cmd)
 
     def completions_raw_save(self, document, complete_event):
         return self.completions_raw_read_only(document, complete_event)
