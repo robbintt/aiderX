@@ -1272,7 +1272,7 @@ class Commands:
         "Switch to Personal Knowledge Management mode"
         if not args.strip():
             # Switch to pkm mode
-            raise SwitchCoder(
+            return self.schedule_switch_coder(
                 from_coder=self.coder,
                 edit_format="whole",
                 handlers=["pkm"],
@@ -1296,7 +1296,7 @@ class Commands:
         if self.coder.handler_manager:
             original_handlers = [h.name for h in self.coder.handler_manager.handlers]
 
-        raise SwitchCoder(
+        return self.schedule_switch_coder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,
