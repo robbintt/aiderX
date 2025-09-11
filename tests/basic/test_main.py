@@ -91,13 +91,13 @@ class TestMain(TestCase):
 
         Path(".aider.conf.yml").write_text("auto-commits: false\n")
         with patch("aider.coders.Coder.create") as MockCoder:
-            main(["--yes"], input=DummyInput(), output=DummyOutput())
+            main(["--yes", "--exit"], input=DummyInput(), output=DummyOutput())
             _, kwargs = MockCoder.call_args
             assert kwargs["auto_commits"] is False
 
         Path(".aider.conf.yml").write_text("auto-commits: true\n")
         with patch("aider.coders.Coder.create") as MockCoder:
-            main([], input=DummyInput(), output=DummyOutput())
+            main(["--exit"], input=DummyInput(), output=DummyOutput())
             _, kwargs = MockCoder.call_args
             assert kwargs["auto_commits"] is True
 
@@ -265,28 +265,28 @@ class TestMain(TestCase):
         with patch("aider.coders.Coder.create") as MockCoder:
             # --yes will just ok the git repo without blocking on input
             # following calls to main will see the new repo already
-            main(["--no-auto-commits", "--yes"], input=DummyInput())
+            main(["--no-auto-commits", "--yes", "--exit"], input=DummyInput())
             _, kwargs = MockCoder.call_args
             assert kwargs["auto_commits"] is False
 
         with patch("aider.coders.Coder.create") as MockCoder:
-            main(["--auto-commits"], input=DummyInput())
+            main(["--auto-commits", "--exit"], input=DummyInput())
             _, kwargs = MockCoder.call_args
             assert kwargs["auto_commits"] is True
 
         with patch("aider.coders.Coder.create") as MockCoder:
-            main([], input=DummyInput())
+            main(["--exit"], input=DummyInput())
             _, kwargs = MockCoder.call_args
             assert kwargs["dirty_commits"] is True
             assert kwargs["auto_commits"] is True
 
         with patch("aider.coders.Coder.create") as MockCoder:
-            main(["--no-dirty-commits"], input=DummyInput())
+            main(["--no-dirty-commits", "--exit"], input=DummyInput())
             _, kwargs = MockCoder.call_args
             assert kwargs["dirty_commits"] is False
 
         with patch("aider.coders.Coder.create") as MockCoder:
-            main(["--dirty-commits"], input=DummyInput())
+            main(["--dirty-commits", "--exit"], input=DummyInput())
             _, kwargs = MockCoder.call_args
             assert kwargs["dirty_commits"] is True
 
@@ -352,7 +352,7 @@ class TestMain(TestCase):
 
                     MockSend.side_effect = side_effect
 
-                    main(["--yes", fname, "--encoding", "iso-8859-15"])
+                    main(["--yes", fname, "--encoding", "iso-8859-15", "--exit"])
 
     def test_main_exit_calls_version_check(self):
         with GitTemporaryDirectory():
@@ -449,7 +449,7 @@ class TestMain(TestCase):
     def test_false_vals_in_env_file(self):
         self.create_env_file(".env", "AIDER_SHOW_DIFFS=off")
         with patch("aider.coders.Coder.create") as MockCoder:
-            main(["--no-git", "--yes"], input=DummyInput(), output=DummyOutput())
+            main(["--no-git", "--yes", "--exit"], input=DummyInput(), output=DummyOutput())
             MockCoder.assert_called_once()
             _, kwargs = MockCoder.call_args
             self.assertEqual(kwargs["show_diffs"], False)
@@ -457,7 +457,7 @@ class TestMain(TestCase):
     def test_true_vals_in_env_file(self):
         self.create_env_file(".env", "AIDER_SHOW_DIFFS=on")
         with patch("aider.coders.Coder.create") as MockCoder:
-            main(["--no-git", "--yes"], input=DummyInput(), output=DummyOutput())
+            main(["--no-git", "--yes", "--exit"], input=DummyInput(), output=DummyOutput())
             MockCoder.assert_called_once()
             _, kwargs = MockCoder.call_args
             self.assertEqual(kwargs["show_diffs"], True)
