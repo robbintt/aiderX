@@ -12,7 +12,7 @@ import git
 import pyperclip
 
 from aider.coders import Coder
-from aider.commands import Commands, SwitchCoder
+from aider.commands import Commands
 from aider.dump import dump  # noqa: F401
 from aider.io import InputOutput
 from aider.models import Model
@@ -1719,21 +1719,28 @@ class TestCommands(TestCase):
         coder = Coder.create(self.GPT35, None, io)
         commands = Commands(io, coder)
 
+        agent = mock.MagicMock()
+        coder.agent = agent
+        commands.agent = agent
+
         # Test switching the main model
-        res = commands.cmd_model("gpt-4")
-        self.assertIsInstance(res, SwitchCoder)
+        with mock.patch("aider.models.sanity_check_models"):
+            commands.cmd_model("gpt-4")
+
+        agent.schedule_switch_coder.assert_called_once()
+        kwargs = agent.schedule_switch_coder.call_args.kwargs
 
         # Check that the SwitchCoder object contains the correct model configuration
-        self.assertEqual(res.kwargs.get("main_model").name, "gpt-4")
+        self.assertEqual(kwargs.get("main_model").name, "gpt-4")
         self.assertEqual(
-            res.kwargs.get("main_model").editor_model.name,
+            kwargs.get("main_model").editor_model.name,
             self.GPT35.editor_model.name,
         )
         self.assertEqual(
-            res.kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
+            kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
         )
         # Check that the edit format is updated to the new model's default
-        self.assertEqual(res.kwargs.get("edit_format"), "diff")
+        self.assertEqual(kwargs.get("edit_format"), "diff")
 
     def test_cmd_model_preserves_explicit_edit_format(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1743,31 +1750,43 @@ class TestCommands(TestCase):
         coder.edit_format = "udiff"
         commands = Commands(io, coder)
 
+        agent = mock.MagicMock()
+        coder.agent = agent
+        commands.agent = agent
+
         # Mock sanity check to avoid network calls
         with mock.patch("aider.models.sanity_check_models"):
             # Test switching the main model to gpt-4 (default 'whole')
-            res = commands.cmd_model("gpt-4")
-            self.assertIsInstance(res, SwitchCoder)
+            commands.cmd_model("gpt-4")
+
+        agent.schedule_switch_coder.assert_called_once()
+        kwargs = agent.schedule_switch_coder.call_args.kwargs
 
         # Check that the SwitchCoder object contains the correct model configuration
-        self.assertEqual(res.kwargs.get("main_model").name, "gpt-4")
+        self.assertEqual(kwargs.get("main_model").name, "gpt-4")
         # Check that the edit format is preserved
-        self.assertEqual(res.kwargs.get("edit_format"), "udiff")
+        self.assertEqual(kwargs.get("edit_format"), "udiff")
 
     def test_cmd_editor_model(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
         coder = Coder.create(self.GPT35, None, io)
         commands = Commands(io, coder)
 
+        agent = mock.MagicMock()
+        coder.agent = agent
+        commands.agent = agent
+
         # Test switching the editor model
-        res = commands.cmd_editor_model("gpt-4")
-        self.assertIsInstance(res, SwitchCoder)
+        with mock.patch("aider.models.sanity_check_models"):
+            commands.cmd_editor_model("gpt-4")
+        agent.schedule_switch_coder.assert_called_once()
+        kwargs = agent.schedule_switch_coder.call_args.kwargs
 
         # Check that the SwitchCoder object contains the correct model configuration
-        self.assertEqual(res.kwargs.get("main_model").name, self.GPT35.name)
-        self.assertEqual(res.kwargs.get("main_model").editor_model.name, "gpt-4")
+        self.assertEqual(kwargs.get("main_model").name, self.GPT35.name)
+        self.assertEqual(kwargs.get("main_model").editor_model.name, "gpt-4")
         self.assertEqual(
-            res.kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
+            kwargs.get("main_model").weak_model.name, self.GPT35.weak_model.name
         )
 
     def test_cmd_weak_model(self):
@@ -1775,17 +1794,23 @@ class TestCommands(TestCase):
         coder = Coder.create(self.GPT35, None, io)
         commands = Commands(io, coder)
 
+        agent = mock.MagicMock()
+        coder.agent = agent
+        commands.agent = agent
+
         # Test switching the weak model
-        res = commands.cmd_weak_model("gpt-4")
-        self.assertIsInstance(res, SwitchCoder)
+        with mock.patch("aider.models.sanity_check_models"):
+            commands.cmd_weak_model("gpt-4")
+        agent.schedule_switch_coder.assert_called_once()
+        kwargs = agent.schedule_switch_coder.call_args.kwargs
 
         # Check that the SwitchCoder object contains the correct model configuration
-        self.assertEqual(res.kwargs.get("main_model").name, self.GPT35.name)
+        self.assertEqual(kwargs.get("main_model").name, self.GPT35.name)
         self.assertEqual(
-            res.kwargs.get("main_model").editor_model.name,
+            kwargs.get("main_model").editor_model.name,
             self.GPT35.editor_model.name,
         )
-        self.assertEqual(res.kwargs.get("main_model").weak_model.name, "gpt-4")
+        self.assertEqual(kwargs.get("main_model").weak_model.name, "gpt-4")
 
     def test_cmd_model_updates_default_edit_format(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1795,16 +1820,22 @@ class TestCommands(TestCase):
         self.assertEqual(coder.edit_format, self.GPT35.edit_format)
         commands = Commands(io, coder)
 
+        agent = mock.MagicMock()
+        coder.agent = agent
+        commands.agent = agent
+
         # Mock sanity check to avoid network calls
         with mock.patch("aider.models.sanity_check_models"):
             # Test switching the main model to gpt-4 (default 'whole')
-            res = commands.cmd_model("gpt-4")
-            self.assertIsInstance(res, SwitchCoder)
+            commands.cmd_model("gpt-4")
+
+        agent.schedule_switch_coder.assert_called_once()
+        kwargs = agent.schedule_switch_coder.call_args.kwargs
 
         # Check that the SwitchCoder object contains the correct model configuration
-        self.assertEqual(res.kwargs.get("main_model").name, "gpt-4")
+        self.assertEqual(kwargs.get("main_model").name, "gpt-4")
         # Check that the edit format is updated to the new model's default
-        self.assertEqual(res.kwargs.get("edit_format"), "diff")
+        self.assertEqual(kwargs.get("edit_format"), "diff")
 
     def test_cmd_ask(self):
         io = InputOutput(pretty=False, fancy_input=False, yes=True)
@@ -1814,11 +1845,15 @@ class TestCommands(TestCase):
         question = "What is the meaning of life?"
         canned_reply = "The meaning of life is 42."
 
+        agent = mock.MagicMock()
+        coder.agent = agent
+        commands.agent = agent
+
         with mock.patch("aider.coders.Coder.run") as mock_run:
             mock_run.return_value = canned_reply
 
-            res = commands.cmd_ask(question)
-            self.assertIsInstance(res, SwitchCoder)
+            commands.cmd_ask(question)
+            agent.schedule_switch_coder.assert_called_once()
 
             mock_run.assert_called_once()
             mock_run.assert_called_once_with(question)
@@ -2107,31 +2142,22 @@ class TestCommands(TestCase):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=True)
             coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            commands = coder.commands
 
             # Create a temporary file with commands
             commands_file = Path(repo_dir) / "test_commands.txt"
             commands_file.write_text("/ask Tell me about the code\n/model gpt-4\n")
 
-            # Mock run to return SwitchCoder for /ask and /model
-            def mock_run(cmd):
-                if cmd.startswith(("/ask", "/model")):
-                    return SwitchCoder()
-                return None
+            with mock.patch.object(io, "tool_error") as mock_tool_error:
+                with mock.patch("aider.coders.Coder.create"):  # inside /ask
+                    with mock.patch("aider.coders.Coder.run"):  # inside /ask
+                        with mock.patch("aider.models.sanity_check_models"):  # inside /model
+                            commands.cmd_load(str(commands_file))
 
-            with mock.patch.object(commands, "run", side_effect=mock_run):
-                # Capture tool_error output
-                with mock.patch.object(io, "tool_error") as mock_tool_error:
-                    commands.cmd_load(str(commands_file))
-
-                    # Check that appropriate error messages were shown
-                    mock_tool_error.assert_any_call(
-                        "Command '/ask Tell me about the code' is only supported in interactive"
-                        " mode, skipping."
-                    )
-                    mock_tool_error.assert_any_call(
-                        "Command '/model gpt-4' is only supported in interactive mode, skipping."
-                    )
+            self.assertGreaterEqual(mock_tool_error.call_count, 1)
+            mock_tool_error.assert_any_call(
+                "This command is not supported in non-interactive mode."
+            )
 
     def test_reset_after_coder_clone_preserves_original_read_only_files(self):
         with GitTemporaryDirectory() as _:

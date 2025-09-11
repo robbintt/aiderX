@@ -7,7 +7,6 @@ from unittest.mock import MagicMock, patch
 
 from aider.coders import Coder
 from aider.coders import editblock_coder as eb
-from aider.commands import SwitchCoder
 from aider.dump import dump  # noqa: F401
 from aider.io import InputOutput
 from aider.models import Model
