@@ -1021,6 +1021,13 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         return
 
     if args.exit:
+        try:
+            coder = agent.get_coder()
+            if not coder:
+                return 1
+        except UnknownEditFormat as err:
+            io.tool_error(str(err))
+            return 1
         analytics.event("exit", reason="Exit flag set")
         return
 
