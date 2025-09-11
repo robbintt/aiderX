@@ -892,6 +892,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         args.stream = False
 
     agent = BaseAgent(args, analytics, io)
+    commands.agent = agent
     coder = agent.setup_coder(
         main_model,
         repo,
