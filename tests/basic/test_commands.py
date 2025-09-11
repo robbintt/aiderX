@@ -1732,8 +1732,10 @@ class TestCommands(TestCase):
     def test_cmd_read_only_with_square_brackets(self):
         with GitTemporaryDirectory() as repo_dir:
             io = InputOutput(pretty=False, fancy_input=False, yes=False)
-            coder = Coder.create(self.GPT35, None, io)
-            commands = Commands(io, coder)
+            agent = mock.MagicMock()
+            coder = Coder.create(self.GPT35, None, io, agent=agent)
+            agent.get_coder.return_value = coder
+            commands = coder.commands
 
             # Create test layout
             test_dir = Path(repo_dir) / "[id]"
@@ -1831,6 +1833,7 @@ class TestCommands(TestCase):
         commands = coder.commands
 
         agent = mock.MagicMock()
+        agent.get_coder.return_value = coder
         coder.agent = agent
         commands.agent = agent
 
@@ -1864,6 +1867,7 @@ class TestCommands(TestCase):
         commands = coder.commands
 
         agent = mock.MagicMock()
+        agent.get_coder.return_value = coder
         coder.agent = agent
         commands.agent = agent
 
@@ -1888,6 +1892,7 @@ class TestCommands(TestCase):
         commands = coder.commands
 
         agent = mock.MagicMock()
+        agent.get_coder.return_value = coder
         coder.agent = agent
         commands.agent = agent
 
@@ -1912,6 +1917,7 @@ class TestCommands(TestCase):
         commands = coder.commands
 
         agent = mock.MagicMock()
+        agent.get_coder.return_value = coder
         coder.agent = agent
         commands.agent = agent
 
@@ -1940,6 +1946,7 @@ class TestCommands(TestCase):
         commands = coder.commands
 
         agent = mock.MagicMock()
+        agent.get_coder.return_value = coder
         coder.agent = agent
         commands.agent = agent
 
@@ -2025,7 +2032,7 @@ class TestCommands(TestCase):
             agent = mock.MagicMock()
             coder = Coder.create(self.GPT35, None, io, agent=agent)
             agent.get_coder.return_value = coder
-            commands = Commands(io, coder)
+            commands = coder.commands
 
             # Add some files to the chat
             file1 = Path(repo_dir) / "file1.txt"
@@ -2345,6 +2352,7 @@ class TestCommands(TestCase):
 
             # Simulate SwitchCoder by creating a new coder from the original one
             new_coder = Coder.create(from_coder=orig_coder)
+            new_coder.agent.get_coder.return_value = new_coder
             new_commands = new_coder.commands
 
             # Perform /reset
@@ -2393,6 +2401,7 @@ class TestCommands(TestCase):
             orig_coder.cur_messages = [{"role": "user", "content": "c1"}]
 
             new_coder = Coder.create(from_coder=orig_coder)
+            new_coder.agent.get_coder.return_value = new_coder
             new_commands = new_coder.commands
             new_commands.cmd_drop("")
 

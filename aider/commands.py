@@ -85,7 +85,7 @@ class Commands:
         self.original_read_only_fnames = set(original_read_only_fnames or [])
 
     def schedule_switch_coder(self, **kwargs):
-        if not self.agent:
+        if not self.agent or getattr(self, "inside_load", False):
             self.io.tool_error("This command is not supported in non-interactive mode.")
             return
         self.agent.schedule_switch_coder(**kwargs)
@@ -1471,13 +1471,17 @@ class Commands:
             self.io.tool_error(f"Error reading file: {e}")
             return
 
-        for cmd in commands:
-            cmd = cmd.strip()
-            if not cmd or cmd.startswith("#"):
-                continue
+        self.inside_load = True
+        try:
+            for cmd in commands:
+                cmd = cmd.strip()
+                if not cmd or cmd.startswith("#"):
+                    continue
 
-            self.io.tool_output(f"\nExecuting: {cmd}")
-            self.run(cmd)
+                self.io.tool_output(f"\nExecuting: {cmd}")
+                self.run(cmd)
+        finally:
+            self.inside_load = False
 
     def completions_raw_save(self, document, complete_event):
         return self.completions_raw_read_only(document, complete_event)
