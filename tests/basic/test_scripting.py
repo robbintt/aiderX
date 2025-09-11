@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from aider.coders import Coder
+from aider.commands import SwitchCoder
 from aider.models import Model
 from aider.utils import GitTemporaryDirectory
 
