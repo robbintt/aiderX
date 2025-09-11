@@ -362,6 +362,7 @@ class Coder:
         self.aider_commit_hashes = set()
         self.rejected_urls = set()
         self.abs_root_path_cache = {}
+        self.newly_added_files_for_reflection = set()
 
         self.auto_copy_context = auto_copy_context
         self.auto_accept_architect = auto_accept_architect
@@ -2348,12 +2349,12 @@ class Coder:
         if not Path(full_path).exists():
             if not self.io.confirm_ask("Create new file?", subject=path):
                 self.io.tool_output(f"Skipping edits to {path}")
-                return
+                return False
 
             if not self.dry_run:
                 if not utils.touch_file(full_path):
                     self.io.tool_error(f"Unable to create {path}, skipping edits.")
-                    return
+                    return False
 
                 # Seems unlikely that we needed to create the file, but it was
                 # actually already part of the repo.
@@ -2365,6 +2366,10 @@ class Coder:
             self.check_added_files()
             return True
 
+        if not self.io.confirm_ask(f"Allow edits to {path} which is not in chat?", subject=path):
+            self.io.tool_output(f"Skipping edits to {path}")
+            return False
+
         if need_to_add:
             self.repo.repo.git.add(full_path)
 
@@ -2373,7 +2378,7 @@ class Coder:
         self.check_for_dirty_commit(path)
         self.newly_added_files_for_reflection.add(path)
 
-        return False
+        return True
 
     warning_given = False
 

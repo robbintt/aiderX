@@ -1266,6 +1266,42 @@ class Commands:
         if text:
             self.io.placeholder = text
 
+    def cmd_pkm(self, args):
+        "Switch to Personal Knowledge Management mode"
+        if not args.strip():
+            # Switch to pkm mode
+            raise SwitchCoder(
+                from_coder=self.coder,
+                edit_format="whole",
+                handlers=["pkm"],
+                summarize_from_coder=False,
+            )
+
+        from aider.coders.base_coder import Coder
+
+        coder = Coder.create(
+            io=self.io,
+            from_coder=self.coder,
+            edit_format="whole",
+            handlers=["pkm"],
+            summarize_from_coder=False,
+        )
+
+        user_msg = args
+        coder.run(user_msg)
+
+        original_handlers = None
+        if self.coder.handler_manager:
+            original_handlers = [h.name for h in self.coder.handler_manager.handlers]
+
+        raise SwitchCoder(
+            edit_format=self.coder.edit_format,
+            summarize_from_coder=False,
+            from_coder=coder,
+            show_announcements=False,
+            handlers=original_handlers,
+        )
+
     def cmd_paste(self, args):
         """Paste image/text from the clipboard into the chat.\
         Optionally provide a name for the image."""

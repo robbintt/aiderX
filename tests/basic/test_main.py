@@ -1074,21 +1074,58 @@ class TestMain(TestCase):
 
     def test_default_model_selection(self):
         with GitTemporaryDirectory():
-            # Test Anthropic API key
-            os.environ["ANTHROPIC_API_KEY"] = "test-key"
-            coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
-            )
-            self.assertIn("sonnet", coder.main_model.name.lower())
-            del os.environ["ANTHROPIC_API_KEY"]
+            # Save and remove openrouter key to test provider-specific keys
+            original_openrouter_key = os.environ.pop("OPENROUTER_API_KEY", None)
 
-            # Test DeepSeek API key
-            os.environ["DEEPSEEK_API_KEY"] = "test-key"
-            coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
-            )
-            self.assertIn("deepseek", coder.main_model.name.lower())
-            del os.environ["DEEPSEEK_API_KEY"]
+            try:
+                # Test Anthropic API key
+                os.environ["ANTHROPIC_API_KEY"] = "test-key"
+                coder = main(
+                    ["--exit", "--yes"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
+                    return_coder=True,
+                )
+                self.assertIn("sonnet", coder.main_model.name.lower())
+                del os.environ["ANTHROPIC_API_KEY"]
+
+                # Test DeepSeek API key
+                os.environ["DEEPSEEK_API_KEY"] = "test-key"
+                coder = main(
+                    ["--exit", "--yes"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
+                    return_coder=True,
+                )
+                self.assertIn("deepseek", coder.main_model.name.lower())
+                del os.environ["DEEPSEEK_API_KEY"]
+
+                # Test OpenAI API key
+                os.environ["OPENAI_API_KEY"] = "test-key"
+                coder = main(
+                    ["--exit", "--yes"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
+                    return_coder=True,
+                )
+                self.assertIn("gpt-4", coder.main_model.name.lower())
+                del os.environ["OPENAI_API_KEY"]
+
+                # Test Gemini API key
+                os.environ["GEMINI_API_KEY"] = "test-key"
+                coder = main(
+                    ["--exit", "--yes"],
+                    input=DummyInput(),
+                    output=DummyOutput(),
+                    return_coder=True,
+                )
+                self.assertIn("gemini", coder.main_model.name.lower())
+                del os.environ["GEMINI_API_KEY"]
+
+            finally:
+                # Restore openrouter key
+                if original_openrouter_key:
+                    os.environ["OPENROUTER_API_KEY"] = original_openrouter_key
 
             # Test OpenRouter API key
             os.environ["OPENROUTER_API_KEY"] = "test-key"
@@ -1097,22 +1134,6 @@ class TestMain(TestCase):
             )
             self.assertIn("openrouter/", coder.main_model.name.lower())
             del os.environ["OPENROUTER_API_KEY"]
-
-            # Test OpenAI API key
-            os.environ["OPENAI_API_KEY"] = "test-key"
-            coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
-            )
-            self.assertIn("gpt-4", coder.main_model.name.lower())
-            del os.environ["OPENAI_API_KEY"]
-
-            # Test Gemini API key
-            os.environ["GEMINI_API_KEY"] = "test-key"
-            coder = main(
-                ["--exit", "--yes"], input=DummyInput(), output=DummyOutput(), return_coder=True
-            )
-            self.assertIn("gemini", coder.main_model.name.lower())
-            del os.environ["GEMINI_API_KEY"]
 
             # Test no API keys - should offer OpenRouter OAuth
             with patch("aider.onboarding.offer_openrouter_oauth") as mock_offer_oauth:
@@ -1167,7 +1188,15 @@ class TestMain(TestCase):
 
     def test_reasoning_effort_option(self):
         coder = main(
-            ["--reasoning-effort", "3", "--no-check-model-accepts-settings", "--yes", "--exit"],
+            [
+                "--model",
+                "gpt-3.5-turbo",
+                "--reasoning-effort",
+                "3",
+                "--no-check-model-accepts-settings",
+                "--yes",
+                "--exit",
+            ],
             input=DummyInput(),
             output=DummyOutput(),
             return_coder=True,
