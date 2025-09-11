@@ -16,7 +16,7 @@ class BaseAgent:
                 try:
                     if not self.io.placeholder:
                         self.coder.copy_context()
-                    user_message = self.coder.get_input()
+                    user_message = self.get_input()
                     self.coder.run_one(user_message, preproc=True)
                     if self.next_coder_kwargs:
                         kwargs = self.next_coder_kwargs
@@ -28,6 +28,24 @@ class BaseAgent:
         except EOFError:
             self.analytics.event("exit", reason="EOF")
             return
+
+    def get_input(self):
+        inchat_files = self.coder.get_inchat_relative_files()
+        read_only_files = [
+            self.coder.get_rel_fname(fname) for fname in self.coder.abs_read_only_fnames
+        ]
+        all_files = sorted(set(inchat_files + read_only_files))
+        edit_format = (
+            "" if self.coder.edit_format == self.coder.main_model.edit_format else self.coder.edit_format
+        )
+        return self.io.get_input(
+            self.coder.root,
+            all_files,
+            self.coder.get_addable_relative_files(),
+            self.coder.commands,
+            self.coder.abs_read_only_fnames,
+            edit_format=edit_format,
+        )
 
     def schedule_switch_coder(self, **kwargs):
         self.next_coder_kwargs = kwargs
