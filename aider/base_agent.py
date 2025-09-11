@@ -134,7 +134,11 @@ class BaseAgent:
     def schedule_switch_coder(self, **kwargs):
         self.next_coder_kwargs = kwargs
 
-    def run(self):
+    def run(self, with_message=None):
+        if with_message:
+            self.coder.run(with_message=with_message)
+            return
+
         while True:
             self.coder.ok_to_warm_cache = bool(self.args.cache_keepalive_pings)
             switch_kwargs = self.run_interactive_loop()
