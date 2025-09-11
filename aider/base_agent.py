@@ -16,33 +16,37 @@ class BaseAgent:
                     if not self.io.placeholder:
                         self.coder.copy_context()
                     user_message = self.coder.get_input()
-                    self.coder.run_one(user_message, preproc=True)
+                    res = self.coder.run_one(user_message, preproc=True)
+                    if isinstance(res, SwitchCoder):
+                        return res
                     self.coder.show_undo_hint()
                 except KeyboardInterrupt:
                     self.coder.keyboard_interrupt()
         except EOFError:
             self.analytics.event("exit", reason="EOF")
+            return
 
     def run(self):
         while True:
-            try:
-                self.coder.ok_to_warm_cache = bool(self.args.cache_keepalive_pings)
-                self.run_interactive_loop()
+            self.coder.ok_to_warm_cache = bool(self.args.cache_keepalive_pings)
+            switch = self.run_interactive_loop()
+
+            if not switch:
                 self.analytics.event("exit", reason="Completed main CLI coder.run")
                 return
-            except SwitchCoder as switch:
-                self.coder.ok_to_warm_cache = False
 
-                # Set the placeholder if provided
-                if hasattr(switch, "placeholder") and switch.placeholder is not None:
-                    self.io.placeholder = switch.placeholder
+            self.coder.ok_to_warm_cache = False
 
-                kwargs = dict(io=self.io, from_coder=self.coder)
-                kwargs.update(switch.kwargs)
-                if "show_announcements" in kwargs:
-                    del kwargs["show_announcements"]
+            # Set the placeholder if provided
+            if hasattr(switch, "placeholder") and switch.placeholder is not None:
+                self.io.placeholder = switch.placeholder
 
-                self.coder = Coder.create(**kwargs)
+            kwargs = dict(io=self.io, from_coder=self.coder)
+            kwargs.update(switch.kwargs)
+            if "show_announcements" in kwargs:
+                del kwargs["show_announcements"]
 
-                if switch.kwargs.get("show_announcements") is not False:
-                    self.coder.show_announcements()
+            self.coder = Coder.create(**kwargs)
+
+            if switch.kwargs.get("show_announcements") is not False:
+                self.coder.show_announcements()

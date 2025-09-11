@@ -27,7 +27,7 @@ from aider.utils import is_image_file
 from .dump import dump  # noqa: F401
 
 
-class SwitchCoder(Exception):
+class SwitchCoder:
     def __init__(self, placeholder=None, **kwargs):
         self.kwargs = kwargs
         self.placeholder = placeholder
@@ -113,7 +113,7 @@ class Commands:
             # If the user was using the old model's default, switch to the new model's default
             new_edit_format = model.edit_format
 
-        raise SwitchCoder(main_model=model, edit_format=new_edit_format)
+        return SwitchCoder(main_model=model, edit_format=new_edit_format)
 
     def cmd_editor_model(self, args):
         "Switch the Editor Model to a new LLM"
@@ -125,7 +125,7 @@ class Commands:
             weak_model=self.coder.main_model.weak_model.name,
         )
         models.sanity_check_models(self.io, model)
-        raise SwitchCoder(main_model=model)
+        return SwitchCoder(main_model=model)
 
     def cmd_weak_model(self, args):
         "Switch the Weak Model to a new LLM"
@@ -137,7 +137,7 @@ class Commands:
             weak_model=model_name,
         )
         models.sanity_check_models(self.io, model)
-        raise SwitchCoder(main_model=model)
+        return SwitchCoder(main_model=model)
 
     def cmd_chat_mode(self, args):
         "Switch to a new chat mode"
@@ -201,7 +201,7 @@ class Commands:
         elif ef == "ask":
             summarize_from_coder = False
 
-        raise SwitchCoder(
+        return SwitchCoder(
             from_coder=self.coder,
             edit_format=edit_format,
             summarize_from_coder=summarize_from_coder,
@@ -1153,7 +1153,7 @@ class Commands:
             map_tokens = 0
             map_mul_no_files = 1
 
-        raise SwitchCoder(
+        return SwitchCoder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,
@@ -1212,7 +1212,7 @@ class Commands:
         coder.run(user_msg)
 
         # Use the provided placeholder if any
-        raise SwitchCoder(
+        return SwitchCoder(
             edit_format=self.coder.edit_format,
             summarize_from_coder=False,
             from_coder=coder,
@@ -1475,9 +1475,8 @@ class Commands:
                 continue
 
             self.io.tool_output(f"\nExecuting: {cmd}")
-            try:
-                self.run(cmd)
-            except SwitchCoder:
+            res = self.run(cmd)
+            if isinstance(res, SwitchCoder):
                 self.io.tool_error(
                     f"Command '{cmd}' is only supported in interactive mode, skipping."
                 )

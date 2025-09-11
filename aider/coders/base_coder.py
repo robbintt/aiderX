@@ -902,7 +902,9 @@ class Coder:
     def run(self, with_message=None, preproc=True):
         if with_message:
             self.io.user_input(with_message)
-            self.run_one(with_message, preproc)
+            res = self.run_one(with_message, preproc)
+            if isinstance(res, SwitchCoder):
+                return res
             return self.partial_response_content
 
         # Interactive mode is now handled by BaseAgent.
@@ -943,7 +945,10 @@ class Coder:
         self.init_before_message()
 
         if preproc:
-            message = self.preproc_user_input(user_message)
+            processed_input = self.preproc_user_input(user_message)
+            if isinstance(processed_input, SwitchCoder):
+                return processed_input
+            message = processed_input
         else:
             message = user_message
 

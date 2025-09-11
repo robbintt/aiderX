@@ -1085,10 +1085,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     if args.message:
         io.add_to_input_history(args.message)
         io.tool_output()
-        try:
-            coder.run(with_message=args.message)
-        except SwitchCoder:
-            pass
+        coder.run(with_message=args.message)
         analytics.event("exit", reason="Completed --message")
         return
 
