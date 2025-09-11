@@ -21,6 +21,7 @@ from aider import __version__, models, urls, utils
 from aider.analytics import Analytics
 from aider.args import get_parser
 from aider.coders import Coder
+from aider.base_agent import BaseAgent
 from aider.config import Config, get_git_root
 from aider.coders.base_coder import UnknownEditFormat
 from aider.commands import Commands, SwitchCoder
@@ -1114,28 +1115,8 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     analytics.event("cli session", main_model=main_model, edit_format=main_model.edit_format)
 
-    while True:
-        try:
-            coder.ok_to_warm_cache = bool(args.cache_keepalive_pings)
-            coder.run()
-            analytics.event("exit", reason="Completed main CLI coder.run")
-            return
-        except SwitchCoder as switch:
-            coder.ok_to_warm_cache = False
-
-            # Set the placeholder if provided
-            if hasattr(switch, "placeholder") and switch.placeholder is not None:
-                io.placeholder = switch.placeholder
-
-            kwargs = dict(io=io, from_coder=coder)
-            kwargs.update(switch.kwargs)
-            if "show_announcements" in kwargs:
-                del kwargs["show_announcements"]
-
-            coder = Coder.create(**kwargs)
-
-            if switch.kwargs.get("show_announcements") is not False:
-                coder.show_announcements()
+    agent = BaseAgent(coder, args, analytics)
+    agent.run()
 
 
 def is_first_run_of_new_version(io, verbose=False):

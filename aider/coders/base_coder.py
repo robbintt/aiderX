@@ -900,22 +900,13 @@ class Coder:
             self.commit_before_message.append(self.repo.get_head_commit_sha())
 
     def run(self, with_message=None, preproc=True):
-        try:
-            if with_message:
-                self.io.user_input(with_message)
-                self.run_one(with_message, preproc)
-                return self.partial_response_content
-            while True:
-                try:
-                    if not self.io.placeholder:
-                        self.copy_context()
-                    user_message = self.get_input()
-                    self.run_one(user_message, preproc)
-                    self.show_undo_hint()
-                except KeyboardInterrupt:
-                    self.keyboard_interrupt()
-        except EOFError:
-            return
+        if with_message:
+            self.io.user_input(with_message)
+            self.run_one(with_message, preproc)
+            return self.partial_response_content
+
+        # Interactive mode is now handled by BaseAgent.
+        raise RuntimeError("Coder.run() should not be called without a message in interactive mode.")
 
     def copy_context(self):
         if self.auto_copy_context:
