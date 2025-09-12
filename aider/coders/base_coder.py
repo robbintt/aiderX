@@ -923,15 +923,20 @@ class Coder:
         if self.auto_copy_context:
             self.commands.cmd_copy_context()
 
-    def preproc_user_input(self, inp):
+    def do_preprocs(self, inp):
         if not inp:
             return
 
         if self.commands.is_command(inp):
             return self.commands.run(inp)
 
-        self.check_for_file_mentions(inp)
         inp = self.check_for_urls(inp)
+        return inp
+
+    def preproc_user_input(self, inp):
+        inp = self.do_preprocs(inp)
+        if inp:
+            self.check_for_file_mentions(inp)
 
         return inp
 
