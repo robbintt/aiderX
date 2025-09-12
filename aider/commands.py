@@ -254,6 +254,9 @@ class Commands:
 
         self.io.tool_output("... added to chat.")
 
+        if not self.coder:
+            return
+
         self.coder.cur_messages += [
             dict(role="user", content=content),
             dict(role="assistant", content="Ok."),

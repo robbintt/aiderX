@@ -1,5 +1,8 @@
+-r requirements-playwright.in
+
 pytest
 pytest-env
+pytest-xdist
 pip-tools
 lox
 matplotlib
