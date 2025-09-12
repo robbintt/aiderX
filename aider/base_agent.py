@@ -238,5 +238,6 @@ class BaseAgent:
             kwargs.update(switch_kwargs)
             if "show_announcements" in kwargs:
                 del kwargs["show_announcements"]
-            self.coder = Coder.create(agent=self, **kwargs)
+            kwargs.setdefault("agent", self)
+            self.coder = Coder.create(**kwargs)
             reprocess_message = True
