@@ -24,7 +24,7 @@
     "cost_rating": 9
   },
   {
-    "name": "flash_nothink",
+    "name": "gemini/gemini-2.5-flash-nothink",
     "speed": 10,
     "intelligence": 3,
     "context_window": 200000,
