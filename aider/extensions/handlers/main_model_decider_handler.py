@@ -197,26 +197,20 @@ class MainModelDeciderHandler(MutableContextHandler):
         io.tool_output(model_decision_message)
 
         # Ask the user if they want to revise their question
-        if io.confirm_ask(
-            "Would you like to revise your question, or proceed with the selected model?",
-            default="y" if target_model.name == self.main_coder.main_model.name else "n"
+        if target_model.name != self.main_coder.main_model.name and io.confirm_ask(
+            "Would you like to proceed with the selected model? (ctrl+c to go back to the the prompt)",
+            default="y"
         ):
             # User wants to proceed or explicitly confirmed the model switch
-            if target_model.name != self.main_coder.main_model.name:
-                io.tool_output(f"Decider: Proposing switch to {target_model.name}")
-                # Schedule the model switch, which will trigger the confirmation prompt in BaseAgent.
-                # The actual coder switch will happen after the current message is processed.
-                self.main_coder.agent.schedule_switch_coder(
-                    main_model=target_model,
-                    from_coder=self.main_coder,
-                    agent=self.main_coder.agent,
-                )
-                return True # Handled by scheduling a switch
-            else:
-                io.tool_output(f"Decider: Sticking with {self.main_coder.main_model.name}")
-                return False # Not changing model, let other handlers process
+            io.tool_output(f"Decider: Proposing switch to {target_model.name}")
+            # Schedule the model switch, which will trigger the confirmation prompt in BaseAgent.
+            # The actual coder switch will happen after the current message is processed.
+            self.main_coder.agent.schedule_switch_coder(
+                main_model=target_model,
+                from_coder=self.main_coder,
+                agent=self.main_coder.agent,
+            )
+            return True
         else:
-            # User wants to revise their question
-            io.set_placeholder(original_user_message)
-            io.tool_output("Decider: Please revise your question at the prompt.")
-            return True # Handled by returning control to the user for revision
+            io.tool_output(f"Decider: Sticking with {self.main_coder.main_model.name}")
+            return False
