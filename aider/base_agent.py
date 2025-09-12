@@ -168,6 +168,7 @@ class BaseAgent:
                         self.coder.handler_manager.run(self.coder.cur_messages, "decide")
 
                     # call send_message on the potentially new coder
+                    self.coder.init_before_message()
                     list(self.coder.send_message())
 
                     if self.next_coder_kwargs:
