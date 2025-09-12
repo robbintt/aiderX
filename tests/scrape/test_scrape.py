@@ -99,14 +99,6 @@ class TestScrape(unittest.TestCase):
         mock_print_error = MagicMock()
         scraper = Scraper(print_error=mock_print_error, playwright_available=True)
 
-        # Mock the playwright module to raise an error
-        import playwright
-
-        playwright._impl._errors.Error = Exception  # Mock the Error class
-
-        def mock_content():
-            raise playwright._impl._errors.Error("Test error")
-
         # Mock the necessary objects and methods
         scraper.scrape_with_playwright = MagicMock()
         scraper.scrape_with_playwright.return_value = (None, None)

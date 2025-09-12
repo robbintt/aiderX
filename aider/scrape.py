@@ -4,6 +4,7 @@ import re
 import sys
 
 import pypandoc
+from filelock import FileLock
 
 from aider import __version__, urls, utils
 from aider.dump import dump  # noqa: F401
@@ -42,36 +43,42 @@ def install_playwright(io):
     if has_pip and has_chromium:
         return True
 
-    pip_cmd = utils.get_pip_install(["aider-chat[playwright]"])
-    chromium_cmd = "-m playwright install --with-deps chromium"
-    chromium_cmd = [sys.executable] + chromium_cmd.split()
+    lock = FileLock(".playwright.lock")
+    with lock:
+        has_pip, has_chromium = check_env()
+        if has_pip and has_chromium:
+            return True
 
-    cmds = ""
-    if not has_pip:
-        cmds += " ".join(pip_cmd) + "\n"
-    if not has_chromium:
-        cmds += " ".join(chromium_cmd) + "\n"
+        pip_cmd = utils.get_pip_install(["aider-chat[playwright]"])
+        chromium_cmd = "-m playwright install --with-deps chromium"
+        chromium_cmd = [sys.executable] + chromium_cmd.split()
 
-    text = f"""For the best web scraping, install Playwright:
+        cmds = ""
+        if not has_pip:
+            cmds += " ".join(pip_cmd) + "\n"
+        if not has_chromium:
+            cmds += " ".join(chromium_cmd) + "\n"
+
+        text = f"""For the best web scraping, install Playwright:
 
 {cmds}
 See {urls.enable_playwright} for more info.
 """
 
-    io.tool_output(text)
-    if not io.confirm_ask("Install playwright?", default="y"):
-        return
+        io.tool_output(text)
+        if not io.confirm_ask("Install playwright?", default="y"):
+            return
 
-    if not has_pip:
-        success, output = utils.run_install(pip_cmd)
+        if not has_pip:
+            success, output = utils.run_install(pip_cmd)
+            if not success:
+                io.tool_error(output)
+                return
+
+        success, output = utils.run_install(chromium_cmd)
         if not success:
             io.tool_error(output)
             return
-
-    success, output = utils.run_install(chromium_cmd)
-    if not success:
-        io.tool_error(output)
-        return
 
     return True
 
