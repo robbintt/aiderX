@@ -105,11 +105,15 @@ class HandlerManager:
 
         :param messages: The current list of messages in the chat.
         :param entrypoint: The entrypoint to run handlers for (e.g., "pre").
+        :return: True if any handler modified the context, False otherwise.
         """
         current_messages = messages
+        modified_by_any_handler = False
         for handler in self.handlers:
             if entrypoint in handler.entrypoints:
                 modified = handler.handle(current_messages)
                 if modified:
+                    modified_by_any_handler = True
                     chunks = self.main_coder.format_messages()
                     current_messages = chunks.all_messages()
+        return modified_by_any_handler

@@ -1906,6 +1906,8 @@ class Coder:
             self.io.tool_error(f"Error running llm_command: {e}")
 
     def send(self, messages, model=None, functions=None):
+        if False:
+            yield
         if not model:
             model = self.main_model
 
