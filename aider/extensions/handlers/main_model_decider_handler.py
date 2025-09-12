@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 
@@ -137,16 +138,21 @@ class MainModelDeciderHandler(MutableContextHandler):
         if not last_user_message:
             return False  # No user message, nothing to do
 
-        if getattr(self.main_coder.agent, "ran_main_model_decider_for_message", None) == last_user_message:
+        current_user_message_hash = hashlib.sha256(last_user_message.encode("utf-8")).hexdigest()
+
+        if (
+            getattr(self.main_coder.agent, "ran_main_model_decider_for_message_hash", None)
+            == current_user_message_hash
+        ):
             self.main_coder.io.tool_output(
                 f"{self.handler_name}: already ran for this message, skipping."
             )
             return False
 
-        self.main_coder.agent.ran_main_model_decider_for_message = last_user_message
+        self.main_coder.agent.ran_main_model_decider_for_message_hash = current_user_message_hash
 
         io = self.main_coder.io
-        original_user_message = messages[-1]["content"] # Capture original user message
+        original_user_message = messages[-1]["content"]  # Capture original user message
 
         io.tool_output(f"{self.handler_name}: deciding which model to use...")
 
