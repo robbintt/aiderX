@@ -158,11 +158,14 @@ class BaseAgent:
                     self.coder.check_for_file_mentions(user_message)
                     self.coder.cur_messages.append(dict(role="user", content=user_message))
 
-                    if not self.coder.run_handlers(self.coder.cur_messages, "pre"):
+                    if self.coder.handler_manager and not self.coder.handler_manager.run(
+                        self.coder.cur_messages, "pre"
+                    ):
                         continue
 
                     # DECIDER HOOK
-                    self.coder.run_handlers(self.coder.cur_messages, "decide")
+                    if self.coder.handler_manager:
+                        self.coder.handler_manager.run(self.coder.cur_messages, "decide")
 
                     # call send_message on the potentially new coder
                     self.coder.send_message()

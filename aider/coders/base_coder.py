@@ -1436,15 +1436,16 @@ class Coder:
                 return False
         return True
 
-    def send_message(self, inp):
+    def send_message(self, inp=None):
         self.event("message_send_starting")
 
         # Notify IO that LLM processing is starting
         self.io.llm_started()
 
-        self.cur_messages += [
-            dict(role="user", content=inp),
-        ]
+        if inp is not None:
+            self.cur_messages += [
+                dict(role="user", content=inp),
+            ]
 
         chunks = self.format_messages()
         messages = chunks.all_messages()
