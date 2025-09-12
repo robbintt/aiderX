@@ -38,6 +38,48 @@ class MainModelDeciderHandler(MutableContextHandler):
         else:
             self.fast_model = None
 
+    def _clean_and_decode_json(self, content):
+        """
+        Cleans markdown fences from a string and decodes it as JSON.
+        """
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.startswith("```"):
+            content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+        return json.loads(content)
+
+    def _should_use_strong_model(self, scores):
+        """
+        Determines if the strong model should be used based on scores.
+        """
+        # The type of use_strong_model is bool, which is what is expected.
+        # If it were a tuple, it would not work as intended for boolean logic.
+        return (
+            scores.get("precision", 3) < 4
+            or scores.get("vague_error", False)
+            or not scores.get("change_existing", True)
+        )
+
+    def _decide_model(self, scores):
+        """
+        Decides which model to use based on the scores.
+        """
+        use_strong_model = self._should_use_strong_model(scores)
+
+        model_map = {
+            "strong": self.main_coder.main_model,
+            "fast": self.fast_model,
+        }
+
+        if not model_map["fast"]:
+            return None
+
+        target_model_key = "strong" if use_strong_model else "fast"
+        return model_map[target_model_key]
+
     def handle(self, messages) -> bool:
         """
         Analyzes the user's request and decides which model to use.
@@ -54,7 +96,9 @@ class MainModelDeciderHandler(MutableContextHandler):
         try:
             spinner = None
             if self.main_coder.show_pretty():
-                spinner = WaitingSpinner(f"{self.handler_name}: Waiting for {self.handler_model.name}")
+                spinner = WaitingSpinner(
+                    f"{self.handler_name}: Waiting for {self.handler_model.name}"
+                )
                 spinner.start()
 
             try:
@@ -71,17 +115,7 @@ class MainModelDeciderHandler(MutableContextHandler):
                     spinner.stop()
 
             content = response.choices[0].message.content
-
-            # Strip markdown fences if present
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            content = content.strip()
-
-            scores = json.loads(content)
+            scores = self._clean_and_decode_json(content)
             io.tool_output(f"Decider scores: {scores}")
 
         except json.JSONDecodeError:
@@ -91,22 +125,10 @@ class MainModelDeciderHandler(MutableContextHandler):
             io.tool_error(f"Error with decider model: {e}")
             return False
 
-        # Simple matrix to select model
-        # The type of use_strong_model is bool, which is what is expected.
-        # If it were a tuple, it would not work as intended for boolean logic.
-        use_strong_model = (
-            scores.get("precision", 3) < 4
-            or scores.get("vague_error", False)
-            or not scores.get("change_existing", True)
-        )
+        target_model = self._decide_model(scores)
 
-        strong_model = self.main_coder.main_model
-        fast_model = self.fast_model
-
-        if not fast_model:
+        if not target_model:
             return False
-
-        target_model = strong_model if use_strong_model else fast_model
 
         if target_model.name != self.main_coder.main_model.name:
             io.tool_output(f"Decider: Proposing switch to {target_model.name}")
