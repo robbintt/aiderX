@@ -64,15 +64,26 @@ class MainModelDeciderHandler(MutableContextHandler):
         # Step 1: Filtering
         eligible_models = []
         for manifest in self.model_manifests:
-            # Hard rule: filter out models with low intelligence for complex tasks
+            # Hard rule: filter out models with insufficient intelligence for demanding tasks
+            required_intelligence_for_alg = 7
+            required_intelligence_for_scope = 6 # Slightly lower for large scope/refactoring
+
             if scores.get("high_complexity_algorithmic"):
-                if manifest.get("intelligence", 0) < 7:
+                if manifest.get("intelligence", 0) < required_intelligence_for_alg:
                     continue
                 if "algorithmic_thinking" not in manifest.get("strengths", []):
                     continue
 
-            # Hard rule: filter out models not suited for multi-file changes
-            if scores.get("multi_file_impact", 1) > 3 and "multi_file" not in manifest.get(
+            if scores.get("scope_of_change", 1) >= 4: # Large scope implies a need for intelligence
+                if manifest.get("intelligence", 0) < required_intelligence_for_scope:
+                    continue
+                if "refactoring" not in manifest.get("strengths", []):
+                    # If it's a large scope change and not a refactoring model, filter it
+                    if not scores.get("high_complexity_algorithmic"): # unless it's an algorithmic task
+                        continue
+
+            # Hard rule: filter out models not suited for high multi-file impact
+            if scores.get("multi_file_impact", 1) >= 4 and "multi_file" not in manifest.get(
                 "strengths", []
             ):
                 continue
@@ -89,39 +100,49 @@ class MainModelDeciderHandler(MutableContextHandler):
         for model_manifest in eligible_models:
             score = 0
 
-            # Intelligence Match
+            # Intelligence Match: Higher intelligence is always better
             if scores.get("high_complexity_algorithmic"):
-                score += model_manifest.get("intelligence", 0) * 2
+                score += model_manifest.get("intelligence", 0) * 3  # Stronger boost for algorithmic
+            elif scores.get("scope_of_change", 1) >= 3: # Boost for general complex tasks
+                 score += model_manifest.get("intelligence", 0) * 1.5
             else:
-                score += 7 - model_manifest.get("intelligence", 0) # Adjusted for less boost to low intelligence
+                score += model_manifest.get("intelligence", 0) * 1 # Base intelligence contribution
 
             # Speed Preference
             if scores.get("explicit_speed_preference"):
-                score += model_manifest.get("speed", 0) * 1.5 # Reduced multiplier
+                score += model_manifest.get("speed", 0) * 2 # Increased multiplier for explicit speed
+            else:
+                score += model_manifest.get("speed", 0) * 0.5 # Reduced impact of speed when not explicitly preferred
+
+            # Simple Correction preference
+            if scores.get("simple_correction") and "simple_correction" in model_manifest.get("strengths", []):
+                score += 5 # Strong bonus for simple corrections
 
             # Bug Fix Preference
             if scores.get("simple_bug_fix") and "bug_fix" in model_manifest.get("strengths", []):
-                score += 3
+                score += 4 # Increased bonus for simple bug fixes
 
-            # Multi-file impact bonus for moderate changes
-            if 2 <= scores.get("multi_file_impact", 1) <= 4 and "multi_file" in model_manifest.get("strengths", []):
-                score += 2
+            # Multi-file impact bonus for moderate to high changes
+            if scores.get("multi_file_impact", 1) >= 2 and "multi_file" in model_manifest.get("strengths", []):
+                score += scores.get("multi_file_impact", 1) * 1.5 # Scales with impact
 
-            # Scope Match
-            if scores.get("scope_of_change", 1) > 3 and "refactoring" in model_manifest.get(
+            # Scope Match (Refactoring)
+            if scores.get("scope_of_change", 1) >= 3 and "refactoring" in model_manifest.get(
                 "strengths", []
             ):
-                score += 5
+                score += scores.get("scope_of_change", 1) * 2 # Scales with scope intensity
 
             # Cost-Effectiveness
+            # Current cost_rating is 0 for all, so this gives a base +10 to all
             score += 10 - model_manifest.get("cost_rating", 10)
 
             # Penalties
+            # Stronger penalty for high unchecked_file_risk if model is not strong in multi_file
             if (
-                scores.get("unchecked_file_risk", 1) > 3
+                scores.get("unchecked_file_risk", 1) >= 3
                 and "multi_file" not in model_manifest.get("strengths", [])
             ):
-                score -= 5
+                score -= scores.get("unchecked_file_risk", 1) * 3 # Increased penalty
 
             ranked_models.append({"name": model_manifest["name"], "score": score})
 
