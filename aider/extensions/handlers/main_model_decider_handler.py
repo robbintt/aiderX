@@ -33,10 +33,8 @@ class MainModelDeciderHandler(MutableContextHandler):
         fast_model_name = kwargs.get("fast_model")
         if fast_model_name:
             self.fast_model = models.Model(fast_model_name)
-        elif main_coder.main_model.weak_model:
-            self.fast_model = main_coder.main_model.weak_model
         else:
-            self.fast_model = None
+            self.fast_model = main_coder.main_model.weak_model
 
     def _clean_and_decode_json(self, content):
         """
@@ -51,34 +49,36 @@ class MainModelDeciderHandler(MutableContextHandler):
         content = content.strip()
         return json.loads(content)
 
-    def _should_use_strong_model(self, scores):
+    def _score_input(self, scores):
         """
-        Determines if the strong model should be used based on scores.
+        Scores input for model selection
         """
-        # The type of use_strong_model is bool, which is what is expected.
-        # If it were a tuple, it would not work as intended for boolean logic.
-        return (
-            scores.get("precision", 3) < 4
-            or scores.get("vague_error", False)
-            or not scores.get("change_existing", True)
-        )
+        score = 0
+
+        if scores.get("precision", 3) < 4:
+            score += 1
+        if scores.get("vague_error", False):
+            score += 1
+        if scores.get("change_existing", False):
+            score += 1
+
+        return score
+
+    def _map_score_to_model(self, score, model_map):
+        pass
 
     def _decide_model(self, scores):
         """
         Decides which model to use based on the scores.
         """
-        use_strong_model = self._should_use_strong_model(scores)
+        score = self._score_input(scores)
 
         model_map = {
-            "strong": self.main_coder.main_model,
-            "fast": self.fast_model,
+            0: self.main_coder.main_model,
+            1: self.fast_model,
         }
 
-        if not model_map["fast"]:
-            return None
-
-        target_model_key = "strong" if use_strong_model else "fast"
-        return model_map[target_model_key]
+        return _map_score_to_model(score, model_map)
 
     def handle(self, messages) -> bool:
         """
