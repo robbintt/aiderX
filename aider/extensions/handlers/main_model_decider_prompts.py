@@ -11,7 +11,8 @@ Your response MUST be a JSON object with the following keys and value types:
 - "precision": An integer from 1 to 5, where 1 is very vague and 5 is extremely specific.
 - "relevance": An integer from 1 to 5, where 1 means the request is unrelated to the provided code and 5 means it is highly relevant.
 - "change_existing": A boolean, true if the request is to modify existing code, false if it is to write entirely new code/files.
-- "fix_bug": A boolean, true if the request is to fix a bug.
+- "simple_bug_fix": A boolean, true if the request is to fix a simple bug.
+- "single_file_change": A boolean, true if the request is likely to be satisfied with changes to a single file.
 - "vague_error": A boolean, true if the request mentions a vague error or problem, false if the error is specific or no error is mentioned.
 
 Example JSON response:
@@ -19,7 +20,8 @@ Example JSON response:
     "precision": 4,
     "relevance": 5,
     "change_existing": true,
-    "fix_bug": true,
+    "simple_bug_fix": true,
+    "single_file_change": true,
     "vague_error": false
 }
 
