@@ -149,7 +149,23 @@ class BaseAgent:
                         self.coder.copy_context()
 
                     user_message = self.get_input()
-                    self.coder.run_one(user_message, preproc=True)
+
+                    # This logic is inlined from coder.run_one() so we can add the 'decide' hook
+                    user_message = self.coder.do_preprocs(user_message)
+                    if not user_message:
+                        continue
+
+                    self.coder.check_for_file_mentions(user_message)
+                    self.coder.cur_messages.append(dict(role="user", content=user_message))
+
+                    if not self.coder.run_handlers(self.coder.cur_messages, "pre"):
+                        continue
+
+                    # DECIDER HOOK
+                    self.coder.run_handlers(self.coder.cur_messages, "decide")
+
+                    # call send_message on the potentially new coder
+                    self.coder.send_message()
 
                     if self.next_coder_kwargs:
                         kwargs = self.next_coder_kwargs
