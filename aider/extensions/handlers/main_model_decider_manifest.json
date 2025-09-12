@@ -1,0 +1,26 @@
+[
+  {
+    "name": "claude-3-haiku-20240307",
+    "speed": 9,
+    "intelligence": 5,
+    "context_window": 200000,
+    "strengths": ["simple_correction", "bug_fix"],
+    "cost_rating": 2
+  },
+  {
+    "name": "claude-3-sonnet-20240229",
+    "speed": 6,
+    "intelligence": 7,
+    "context_window": 200000,
+    "strengths": ["bug_fix", "refactoring", "multi_file"],
+    "cost_rating": 5
+  },
+  {
+    "name": "claude-3-opus-20240229",
+    "speed": 3,
+    "intelligence": 10,
+    "context_window": 200000,
+    "strengths": ["refactoring", "multi_file", "algorithmic_thinking"],
+    "cost_rating": 9
+  }
+]

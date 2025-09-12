@@ -1,4 +1,5 @@
 import json
+import os
 
 from aider import models
 from aider.coders.base_coder import Coder
@@ -31,17 +32,16 @@ class MainModelDeciderHandler(MutableContextHandler):
         if model_name:
             self.handler_model = models.Model(model_name)
 
-        smartest_model_name = kwargs.get("smartest_model")
-        if smartest_model_name:
-            self.smartest_model = models.Model(smartest_model_name)
-        else:
-            self.smartest_model = main_coder.main_model.weak_model
-
-        fast_model_name = kwargs.get("fast_model")
-        if fast_model_name:
-            self.fast_model = models.Model(fast_model_name)
-        else:
-            self.fast_model = main_coder.main_model.weak_model
+        # Load model manifests
+        manifest_path = os.path.join(
+            os.path.dirname(__file__), "main_model_decider_manifest.json"
+        )
+        try:
+            with open(manifest_path, "r") as f:
+                self.model_manifests = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            self.main_coder.io.tool_error(f"Error loading model manifest: {e}")
+            self.model_manifests = []
 
     def _clean_and_decode_json(self, content):
         """
@@ -56,76 +56,73 @@ class MainModelDeciderHandler(MutableContextHandler):
         content = content.strip()
         return json.loads(content)
 
-    def _score_input(self, scores):
-        """
-        Scores input for model selection
-        """
-        score = 0
-        # A higher score indicates an "easier" task, pushing towards a faster/weaker model.
-        # Conversely, not incrementing for a "harder" characteristic keeps it with the smarter model.
-
-        # High precision means easier to handle, add points for a faster model.
-        if scores.get("precision", 3) >= 4:
-            score += 1
-
-        # Not a vague error means easier to handle, add points.
-        if not scores.get("vague_error", False):
-            score += 1
-
-        # Single file change and simple bug fix is an easy task.
-        if scores.get("single_file_change", False) and scores.get("simple_bug_fix", False):
-            score += 1
-
-        # Simple correction is an easy task.
-        if scores.get("simple_correction", False):
-            score += 1
-
-        # Explicit speed preference means user is fine with a faster model.
-        if scores.get("explicit_speed_preference", False):
-            score += 1
-
-        # If user expects to refine, a faster model might be okay.
-        if scores.get("user_refinement_expected", False):
-            score += 1
-
-        # Low multi-file impact means easier.
-        if scores.get("multi_file_impact", 3) <= 2:
-            score += 1
-
-        # Not high complexity algorithmic means easier.
-        if not scores.get("high_complexity_algorithmic", False):
-            score += 1
-
-        return score
-
-    def _map_score_to_model(self, score, model_map):
-        """
-        Maps a score to a model using a model_map.
-        It finds the highest score in the map that is less than or equal to the given score.
-        """
-        # Find the best key to use from the model_map
-        best_key = -1
-        for key in model_map.keys():
-            if key <= score and key > best_key:
-                best_key = key
-
-        if best_key != -1:
-            return model_map[best_key]
-
-        return None
-
     def _decide_model(self, scores):
         """
-        Decides which model to use based on the scores.
+        Decides which model to use based on the request characteristics and model manifests.
+        Uses a filter and rank algorithm.
         """
-        score = self._score_input(scores)
+        # Step 1: Filtering
+        eligible_models = []
+        for manifest in self.model_manifests:
+            # Hard rule: filter out models with low intelligence for complex tasks
+            if scores.get("high_complexity_algorithmic"):
+                if manifest.get("intelligence", 0) < 7:
+                    continue
+                if "algorithmic_thinking" not in manifest.get("strengths", []):
+                    continue
 
-        model_map = {
-            0: self.smartest_model,  # Scores 0, 1, 2 default to smartest
-            3: self.fast_model,      # Scores 3+ will use the fast model
-        }
+            # Hard rule: filter out models not suited for multi-file changes
+            if scores.get("multi_file_impact", 1) > 3 and "multi_file" not in manifest.get(
+                "strengths", []
+            ):
+                continue
 
-        return self._map_score_to_model(score, model_map)
+            # Context window check could be added here if we had token count of conversation
+
+            eligible_models.append(manifest)
+
+        if not eligible_models:
+            return None  # No models are suitable
+
+        # Step 2: Ranking
+        ranked_models = []
+        for model_manifest in eligible_models:
+            score = 0
+
+            # Intelligence Match
+            if scores.get("high_complexity_algorithmic"):
+                score += model_manifest.get("intelligence", 0) * 2
+            else:
+                score += 10 - model_manifest.get("intelligence", 0)
+
+            # Speed Preference
+            if scores.get("explicit_speed_preference"):
+                score += model_manifest.get("speed", 0) * 3
+
+            # Scope Match
+            if scores.get("scope_of_change", 1) > 3 and "refactoring" in model_manifest.get(
+                "strengths", []
+            ):
+                score += 5
+
+            # Cost-Effectiveness
+            score += 10 - model_manifest.get("cost_rating", 10)
+
+            # Penalties
+            if (
+                scores.get("unchecked_file_risk", 1) > 3
+                and "multi_file" not in model_manifest.get("strengths", [])
+            ):
+                score -= 5
+
+            ranked_models.append({"name": model_manifest["name"], "score": score})
+
+        if not ranked_models:
+            return None
+
+        # Step 3: Selection
+        best_model = max(ranked_models, key=lambda x: x["score"])
+        return models.Model(best_model["name"])
 
     def handle(self, messages) -> bool:
         """
@@ -201,16 +198,19 @@ class MainModelDeciderHandler(MutableContextHandler):
         model_decision_message = "Aider's Model Decider analyzed your request and determined:\n"
         model_decision_message += "  - Key characteristics identified: "
         characteristics = []
-        if scores.get("precision", 3) >= 4: characteristics.append("High Precision Request")
-        if not scores.get("vague_error", False): characteristics.append("Clear Error (if any)")
-        if scores.get("single_file_change", False): characteristics.append("Single File Change Likely")
-        if scores.get("simple_bug_fix", False): characteristics.append("Simple Bug Fix Likely")
-        if scores.get("simple_correction", False): characteristics.append("Minor Correction/Typo")
-        if scores.get("explicit_speed_preference", False): characteristics.append("Speed Preferred by User")
-        if scores.get("user_refinement_expected", False): characteristics.append("User Expects to Refine")
-        if scores.get("multi_file_impact", 3) <= 2: characteristics.append("Low Multi-File Impact")
-        if not scores.get("high_complexity_algorithmic", False): characteristics.append("Non-Complex Algorithm")
-        if not characteristics: characteristics.append("General/Complex Task")
+        if scores.get("high_complexity_algorithmic"):
+            characteristics.append("High Algorithmic Complexity")
+        if scores.get("multi_file_impact", 1) > 3:
+            characteristics.append("High Multi-File Impact")
+        if scores.get("explicit_speed_preference"):
+            characteristics.append("Speed Preferred by User")
+        if scores.get("scope_of_change", 1) > 3:
+            characteristics.append("Large Scope of Change (Refactoring)")
+        if scores.get("unchecked_file_risk", 1) > 3:
+            characteristics.append("Risk of Affecting Unseen Files")
+        if not characteristics:
+            characteristics.append("General/Simple Task")
+
         model_decision_message += ", ".join(characteristics) + "\n"
         model_decision_message += f"  - Recommended model for this task: {target_model.name}"
         io.tool_output(model_decision_message)

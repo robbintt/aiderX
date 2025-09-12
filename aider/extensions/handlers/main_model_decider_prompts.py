@@ -19,6 +19,8 @@ Your response MUST be a JSON object with the following keys and value types:
 - "high_complexity_algorithmic": A boolean, true if the request describes a problem requiring non-trivial algorithms, data structures, or advanced domain-specific logic.
 - "explicit_speed_preference": A boolean, true if the user's language indicates a preference for a quick or fast response, potentially at the expense of thoroughness.
 - "user_refinement_expected": A boolean, true if the user's language suggests they are looking for a draft or starting point and expect to perform further refinement themselves.
+- "scope_of_change": An integer from 1 to 5, where 1 is a single-line change and 5 is a broad, architectural modification.
+- "unchecked_file_risk": An integer from 1 to 5, representing the likelihood that the requested change will have cascading effects on other files not currently in the chat context.
 
 Example JSON response:
 {
@@ -32,7 +34,9 @@ Example JSON response:
     "multi_file_impact": 1,
     "high_complexity_algorithmic": false,
     "explicit_speed_preference": true,
-    "user_refinement_expected": false
+    "user_refinement_expected": false,
+    "scope_of_change": 2,
+    "unchecked_file_risk": 1
 }
 
 Do not include any other text or explanation in your response. Only the JSON object.
