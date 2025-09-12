@@ -14,6 +14,11 @@ Your response MUST be a JSON object with the following keys and value types:
 - "simple_bug_fix": A boolean, true if the request is to fix a simple bug.
 - "single_file_change": A boolean, true if the request is likely to be satisfied with changes to a single file.
 - "vague_error": A boolean, true if the request mentions a vague error or problem, false if the error is specific or no error is mentioned.
+- "simple_correction": A boolean, true if the request is for a minor correction, typo fix, or very localized change, often affecting a single line or a few characters.
+- "multi_file_impact": An integer from 1 to 5, where 1 means the change is likely confined to a single function/class and 5 means it will likely affect many files or broad architectural components.
+- "high_complexity_algorithmic": A boolean, true if the request describes a problem requiring non-trivial algorithms, data structures, or advanced domain-specific logic.
+- "explicit_speed_preference": A boolean, true if the user's language indicates a preference for a quick or fast response, potentially at the expense of thoroughness.
+- "user_refinement_expected": A boolean, true if the user's language suggests they are looking for a draft or starting point and expect to perform further refinement themselves.
 
 Example JSON response:
 {
@@ -22,7 +27,12 @@ Example JSON response:
     "change_existing": true,
     "simple_bug_fix": true,
     "single_file_change": true,
-    "vague_error": false
+    "vague_error": false,
+    "simple_correction": true,
+    "multi_file_impact": 1,
+    "high_complexity_algorithmic": false,
+    "explicit_speed_preference": true,
+    "user_refinement_expected": false
 }
 
 Do not include any other text or explanation in your response. Only the JSON object.

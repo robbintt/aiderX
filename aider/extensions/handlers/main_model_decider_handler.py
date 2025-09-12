@@ -60,15 +60,40 @@ class MainModelDeciderHandler(MutableContextHandler):
         Scores input for model selection
         """
         score = 0
+        # A higher score indicates an "easier" task, pushing towards a faster/weaker model.
+        # Conversely, not incrementing for a "harder" characteristic keeps it with the smarter model.
 
-        if scores.get("precision", 3) < 4:
+        # High precision means easier to handle, add points for a faster model.
+        if scores.get("precision", 3) >= 4:
             score += 1
-        if scores.get("vague_error", False):
+
+        # Not a vague error means easier to handle, add points.
+        if not scores.get("vague_error", False):
             score += 1
+
+        # Single file change and simple bug fix is an easy task.
         if scores.get("single_file_change", False) and scores.get("simple_bug_fix", False):
             score += 1
-        #if scores.get("change_existing", False):
-        #    score += 1
+
+        # Simple correction is an easy task.
+        if scores.get("simple_correction", False):
+            score += 1
+
+        # Explicit speed preference means user is fine with a faster model.
+        if scores.get("explicit_speed_preference", False):
+            score += 1
+
+        # If user expects to refine, a faster model might be okay.
+        if scores.get("user_refinement_expected", False):
+            score += 1
+
+        # Low multi-file impact means easier.
+        if scores.get("multi_file_impact", 3) <= 2:
+            score += 1
+
+        # Not high complexity algorithmic means easier.
+        if not scores.get("high_complexity_algorithmic", False):
+            score += 1
 
         return score
 
@@ -95,8 +120,8 @@ class MainModelDeciderHandler(MutableContextHandler):
         score = self._score_input(scores)
 
         model_map = {
-            0: self.smartest_model,
-            1: self.fast_model,
+            0: self.smartest_model,  # Scores 0, 1, 2 default to smartest
+            3: self.fast_model,      # Scores 3+ will use the fast model
         }
 
         return self._map_score_to_model(score, model_map)
@@ -106,6 +131,8 @@ class MainModelDeciderHandler(MutableContextHandler):
         Analyzes the user's request and decides which model to use.
         """
         io = self.main_coder.io
+        original_user_message = messages[-1]["content"] # Capture original user message
+
         io.tool_output(f"{self.handler_name}: deciding which model to use...")
 
         # Formulate messages for the decider model
@@ -151,16 +178,45 @@ class MainModelDeciderHandler(MutableContextHandler):
         if not target_model:
             return False
 
-        if target_model.name != self.main_coder.main_model.name:
-            io.tool_output(f"Decider: Proposing switch to {target_model.name}")
-            # Schedule the model switch, which will trigger the confirmation prompt in BaseAgent.
-            # The actual coder switch will happen after the current message is processed.
-            self.main_coder.agent.schedule_switch_coder(
-                main_model=target_model,
-                from_coder=self.main_coder,
-                agent=self.main_coder.agent,
-            )
-            return True
+        # Prepare a message explaining the model choice to the user
+        model_decision_message = "Aider's Model Decider analyzed your request and determined:\n"
+        model_decision_message += "  - Key characteristics identified: "
+        characteristics = []
+        if scores.get("precision", 3) >= 4: characteristics.append("High Precision Request")
+        if not scores.get("vague_error", False): characteristics.append("Clear Error (if any)")
+        if scores.get("single_file_change", False): characteristics.append("Single File Change Likely")
+        if scores.get("simple_bug_fix", False): characteristics.append("Simple Bug Fix Likely")
+        if scores.get("simple_correction", False): characteristics.append("Minor Correction/Typo")
+        if scores.get("explicit_speed_preference", False): characteristics.append("Speed Preferred by User")
+        if scores.get("user_refinement_expected", False): characteristics.append("User Expects to Refine")
+        if scores.get("multi_file_impact", 3) <= 2: characteristics.append("Low Multi-File Impact")
+        if not scores.get("high_complexity_algorithmic", False): characteristics.append("Non-Complex Algorithm")
+        if not characteristics: characteristics.append("General/Complex Task")
+        model_decision_message += ", ".join(characteristics) + "\n"
+        model_decision_message += f"  - Recommended model for this task: {target_model.name}"
+        io.tool_output(model_decision_message)
 
-        io.tool_output(f"Decider: Sticking with {self.main_coder.main_model.name}")
-        return False
+        # Ask the user if they want to revise their question
+        if io.confirm_ask(
+            "Would you like to revise your question, or proceed with the selected model?",
+            default="y" if target_model.name == self.main_coder.main_model.name else "n"
+        ):
+            # User wants to proceed or explicitly confirmed the model switch
+            if target_model.name != self.main_coder.main_model.name:
+                io.tool_output(f"Decider: Proposing switch to {target_model.name}")
+                # Schedule the model switch, which will trigger the confirmation prompt in BaseAgent.
+                # The actual coder switch will happen after the current message is processed.
+                self.main_coder.agent.schedule_switch_coder(
+                    main_model=target_model,
+                    from_coder=self.main_coder,
+                    agent=self.main_coder.agent,
+                )
+                return True # Handled by scheduling a switch
+            else:
+                io.tool_output(f"Decider: Sticking with {self.main_coder.main_model.name}")
+                return False # Not changing model, let other handlers process
+        else:
+            # User wants to revise their question
+            io.set_placeholder(original_user_message)
+            io.tool_output("Decider: Please revise your question at the prompt.")
+            return True # Handled by returning control to the user for revision
