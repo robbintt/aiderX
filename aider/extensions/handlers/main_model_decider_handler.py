@@ -109,13 +109,14 @@ class MainModelDeciderHandler(MutableContextHandler):
         target_model = strong_model if use_strong_model else fast_model
 
         if target_model.name != self.main_coder.main_model.name:
-            io.tool_output(f"Decider: Switching to {target_model.name}")
-            new_coder = Coder.create(
-                from_coder=self.main_coder,
+            io.tool_output(f"Decider: Proposing switch to {target_model.name}")
+            # Schedule the model switch, which will trigger the confirmation prompt in BaseAgent.
+            # The actual coder switch will happen after the current message is processed.
+            self.main_coder.agent.schedule_switch_coder(
                 main_model=target_model,
+                from_coder=self.main_coder,
                 agent=self.main_coder.agent,
             )
-            self.main_coder.agent.coder = new_coder
             return True
 
         io.tool_output(f"Decider: Sticking with {self.main_coder.main_model.name}")
