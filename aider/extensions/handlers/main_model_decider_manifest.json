@@ -1,29 +1,5 @@
 [
   {
-    "name": "gemini/gemini-2.5-flash-maxthink",
-    "speed": 9,
-    "intelligence": 5,
-    "context_window": 200000,
-    "strengths": ["simple_correction", "bug_fix"],
-    "cost_rating": 3 
-  },
-  {
-    "name": "openrouter/deepseek/deepseek-chat-v3.1:free",
-    "speed": 6,
-    "intelligence": 7,
-    "context_window": 128000,
-    "strengths": ["bug_fix", "refactoring", "multi_file"],
-    "cost_rating": 1 
-  },
-  {
-    "name": "gemini/gemini-2.5-pro",
-    "speed": 3,
-    "intelligence": 10,
-    "context_window": 200000,
-    "strengths": ["refactoring", "multi_file", "algorithmic_thinking"],
-    "cost_rating": 9
-  },
-  {
     "name": "gemini/gemini-2.5-flash-nothink",
     "speed": 10,
     "intelligence": 3,
@@ -32,11 +8,35 @@
     "cost_rating": 0
   },
   {
+    "name": "gemini/gemini-2.5-flash-maxthink",
+    "speed": 8,
+    "intelligence": 5,
+    "context_window": 200000,
+    "strengths": ["simple_correction", "bug_fix", "speed", "refactoring"],
+    "cost_rating": 0
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-chat-v3.1:free",
+    "speed": 5,
+    "intelligence": 5,
+    "context_window": 128000,
+    "strengths": ["bug_fix", "refactoring", "multi_file"],
+    "cost_rating": 0 
+  },
+  {
+    "name": "gemini/gemini-2.5-pro",
+    "speed": 3,
+    "intelligence": 10,
+    "context_window": 200000,
+    "strengths": ["bug_fix", "simple_correction", "multi_file", "refactoring", "multi_file", "algorithmic_thinking"],
+    "cost_rating": 0
+  },
+  {
     "name": "openai/gpt-5-mini",
     "speed": 8,
-    "intelligence": 6,
+    "intelligence": 7,
     "context_window": 128000,
-    "strengths": ["bug_fix", "simple_correction", "multi_file"],
-    "cost_rating": 4
+    "strengths": ["bug_fix", "simple_correction", "multi_file", "refactoring", "multi_file", "algorithmic_thinking"],
+    "cost_rating": 0
   }
 ]
