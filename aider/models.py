@@ -110,6 +110,7 @@ MODEL_ALIASES = {
 class ModelSettings:
     # Model class needs to have each of these as well
     name: str
+    litellm_model_name: Optional[str] = None
     edit_format: str = "whole"
     weak_model_name: Optional[str] = None
     use_repo_map: bool = False
@@ -332,7 +333,12 @@ class Model(ModelSettings):
             (ms for ms in MODEL_SETTINGS if ms.name == "aider/extra_params"), None
         )
 
-        self.info = self.get_model_info(model)
+        self.configure_model_settings(model)
+
+        if self.litellm_model_name:
+            litellm.model_alias_map[self.name] = self.litellm_model_name
+
+        self.info = self.get_model_info(self.name)
 
         # Are all needed keys/params available?
         res = self.validate_environment()
@@ -344,7 +350,6 @@ class Model(ModelSettings):
         # with minimum 1k and maximum 8k
         self.max_chat_history_tokens = min(max(max_input_tokens / 16, 1024), 8192)
 
-        self.configure_model_settings(model)
         if weak_model is False:
             self.weak_model_name = None
         else:
@@ -1017,9 +1022,9 @@ class Model(ModelSettings):
         return hash_object, res
 
     def simple_send_with_retries(self, messages):
-        is_llm_command = self.name.startswith("llm-command:") or self.name.startswith(
-            "llm:command"
-        )
+        is_llm_command = self.name.startswith(
+            "llm-command:"
+        ) or self.name.startswith("llm:command")
         if is_llm_command:
             import subprocess
 
