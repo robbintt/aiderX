@@ -59,8 +59,8 @@ class MainModelDeciderHandler(MutableContextHandler):
             score += 1
         if scores.get("vague_error", False):
             score += 1
-        if scores.get("change_existing", False):
-            score += 1
+        #if scores.get("change_existing", False):
+        #    score += 1
 
         return score
 
