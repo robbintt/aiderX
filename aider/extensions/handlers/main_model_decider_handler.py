@@ -20,6 +20,7 @@ class MainModelDeciderHandler(MutableContextHandler):
 
     def __init__(self, main_coder, **kwargs):
         self.main_coder = main_coder
+        self.ran_for_message = None
 
         if main_coder.main_model.weak_model:
             self.handler_model = main_coder.main_model.weak_model
@@ -130,6 +131,24 @@ class MainModelDeciderHandler(MutableContextHandler):
         """
         Analyzes the user's request and decides which model to use.
         """
+        # Find last user message
+        last_user_message = None
+        for message in reversed(messages):
+            if message.get("role") == "user":
+                last_user_message = message.get("content")
+                break
+
+        if not last_user_message:
+            return False  # No user message, nothing to do
+
+        if self.ran_for_message == last_user_message:
+            self.main_coder.io.tool_output(
+                f"{self.handler_name}: already ran for this message, skipping."
+            )
+            return False
+
+        self.ran_for_message = last_user_message
+
         io = self.main_coder.io
         original_user_message = messages[-1]["content"] # Capture original user message
 
