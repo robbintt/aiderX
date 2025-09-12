@@ -141,14 +141,18 @@ class BaseAgent:
         self.coder.agent = self
         return self.coder
 
-    def run_interactive_loop(self):
+    def run_interactive_loop(self, reprocess_message=False):
         try:
             while True:
                 try:
                     if not self.io.placeholder:
                         self.coder.copy_context()
 
-                    user_message = self.get_input()
+                    if reprocess_message:
+                        user_message = self.coder.cur_messages.pop().get("content")
+                        reprocess_message = False
+                    else:
+                        user_message = self.get_input()
 
                     # This logic is inlined from coder.run_one() so we can add the 'decide' hook
                     user_message = self.coder.do_preprocs(user_message)
@@ -161,6 +165,10 @@ class BaseAgent:
                     if self.coder.handler_manager and self.coder.handler_manager.run(
                         self.coder.cur_messages, "pre"
                     ):
+                        if self.next_coder_kwargs:
+                            kwargs = self.next_coder_kwargs
+                            self.next_coder_kwargs = None
+                            return kwargs
                         continue
 
                     # call send_message on the potentially new coder
@@ -209,10 +217,12 @@ class BaseAgent:
             self.coder.run(with_message=with_message)
             return
 
+        reprocess_message = False
         while True:
             # This is the interactive loop
             self.coder.ok_to_warm_cache = bool(self.args.cache_keepalive_pings)
-            switch_kwargs = self.run_interactive_loop()
+            switch_kwargs = self.run_interactive_loop(reprocess_message=reprocess_message)
+            reprocess_message = False
 
             if not switch_kwargs:
                 self.analytics.event("exit", reason="Completed main CLI coder.run")
@@ -229,3 +239,4 @@ class BaseAgent:
             if "show_announcements" in kwargs:
                 del kwargs["show_announcements"]
             self.coder = Coder.create(agent=self, **kwargs)
+            reprocess_message = True
