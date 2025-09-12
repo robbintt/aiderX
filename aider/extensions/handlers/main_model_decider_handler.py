@@ -15,7 +15,7 @@ class MainModelDeciderHandler(MutableContextHandler):
     """
 
     handler_name = "main_model_decider"
-    entrypoints = ["decide"]
+    entrypoints = ["pre"]
     gpt_prompts = MainModelDeciderPrompts()
 
     def __init__(self, main_coder, **kwargs):
