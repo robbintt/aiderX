@@ -3,19 +3,19 @@ import json
 from aider import models
 from aider.coders.base_coder import Coder
 from ..handler import MutableContextHandler
-from .decider_prompts import DeciderPrompts
+from .main_model_decider_prompts import MainModelDeciderPrompts
 from aider.utils import format_messages
 
 
-class DeciderHandler(MutableContextHandler):
+class MainModelDeciderHandler(MutableContextHandler):
     """
     A handler that uses a model to decide which model is best
     suited to handle the user's request.
     """
 
-    handler_name = "decider"
+    handler_name = "main_model_decider"
     entrypoints = ["decide"]
-    gpt_prompts = DeciderPrompts()
+    gpt_prompts = MainModelDeciderPrompts()
 
     def __init__(self, main_coder, **kwargs):
         self.main_coder = main_coder

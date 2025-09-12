@@ -1,7 +1,7 @@
 from aider.coders.base_prompts import CoderPrompts
 
 
-class DeciderPrompts(CoderPrompts):
+class MainModelDeciderPrompts(CoderPrompts):
     main_system = """You are a request analysis model. Your task is to analyze the user's request and the conversation history to assess the request's characteristics.
 
 Analyze the user's latest request in the context of the provided conversation history and files.
