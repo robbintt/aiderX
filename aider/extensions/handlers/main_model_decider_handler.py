@@ -5,6 +5,7 @@ from aider.coders.base_coder import Coder
 from ..handler import MutableContextHandler
 from .main_model_decider_prompts import MainModelDeciderPrompts
 from aider.utils import format_messages
+from aider.waiting import WaitingSpinner
 
 
 class MainModelDeciderHandler(MutableContextHandler):
@@ -28,6 +29,14 @@ class MainModelDeciderHandler(MutableContextHandler):
         model_name = kwargs.get("model")
         if model_name:
             self.handler_model = models.Model(model_name)
+
+        fast_model_name = kwargs.get("fast_model")
+        if fast_model_name:
+            self.fast_model = models.Model(fast_model_name)
+        elif main_coder.main_model.weak_model:
+            self.fast_model = main_coder.main_model.weak_model
+        else:
+            self.fast_model = None
 
     def handle(self, messages) -> bool:
         """
@@ -92,7 +101,7 @@ class MainModelDeciderHandler(MutableContextHandler):
         )
 
         strong_model = self.main_coder.main_model
-        fast_model = self.main_coder.main_model.weak_model
+        fast_model = self.fast_model
 
         if not fast_model:
             return False
