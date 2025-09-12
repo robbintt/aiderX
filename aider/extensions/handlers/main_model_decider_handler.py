@@ -65,7 +65,20 @@ class MainModelDeciderHandler(MutableContextHandler):
         return score
 
     def _map_score_to_model(self, score, model_map):
-        pass
+        """
+        Maps a score to a model using a model_map.
+        It finds the highest score in the map that is less than or equal to the given score.
+        """
+        # Find the best key to use from the model_map
+        best_key = -1
+        for key in model_map.keys():
+            if key <= score and key > best_key:
+                best_key = key
+
+        if best_key != -1:
+            return model_map[best_key]
+
+        return None
 
     def _decide_model(self, scores):
         """
@@ -78,7 +91,7 @@ class MainModelDeciderHandler(MutableContextHandler):
             1: self.fast_model,
         }
 
-        return _map_score_to_model(score, model_map)
+        return self._map_score_to_model(score, model_map)
 
     def handle(self, messages) -> bool:
         """
