@@ -30,6 +30,12 @@ class MainModelDeciderHandler(MutableContextHandler):
         if model_name:
             self.handler_model = models.Model(model_name)
 
+        smartest_model_name = kwargs.get("smartest_model")
+        if smartest_model_name:
+            self.smartest_model = models.Model(smartest_model_name)
+        else:
+            self.smartest_model = main_coder.main_model.weak_model
+
         fast_model_name = kwargs.get("fast_model")
         if fast_model_name:
             self.fast_model = models.Model(fast_model_name)
@@ -89,7 +95,7 @@ class MainModelDeciderHandler(MutableContextHandler):
         score = self._score_input(scores)
 
         model_map = {
-            0: self.main_coder.main_model,
+            0: self.smartest_model,
             1: self.fast_model,
         }
 
