@@ -22,5 +22,21 @@
     "context_window": 200000,
     "strengths": ["refactoring", "multi_file", "algorithmic_thinking"],
     "cost_rating": 9
+  },
+  {
+    "name": "flash_nothink",
+    "speed": 10,
+    "intelligence": 3,
+    "context_window": 200000,
+    "strengths": ["simple_correction", "speed"],
+    "cost_rating": 0
+  },
+  {
+    "name": "openai/gpt-5-mini",
+    "speed": 8,
+    "intelligence": 6,
+    "context_window": 128000,
+    "strengths": ["bug_fix", "simple_correction", "multi_file"],
+    "cost_rating": 4
   }
 ]
