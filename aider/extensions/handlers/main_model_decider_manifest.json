@@ -1,6 +1,6 @@
 [
   {
-    "name": "gemini-2.5-flash",
+    "name": "gemini/gemini-2.5-flash-maxthink",
     "speed": 9,
     "intelligence": 5,
     "context_window": 200000,
@@ -16,7 +16,7 @@
     "cost_rating": 1 
   },
   {
-    "name": "gemini-2.5-pro",
+    "name": "gemini/gemini-2.5-pro",
     "speed": 3,
     "intelligence": 10,
     "context_window": 200000,
