@@ -93,11 +93,19 @@ class MainModelDeciderHandler(MutableContextHandler):
             if scores.get("high_complexity_algorithmic"):
                 score += model_manifest.get("intelligence", 0) * 2
             else:
-                score += 10 - model_manifest.get("intelligence", 0)
+                score += 7 - model_manifest.get("intelligence", 0) # Adjusted for less boost to low intelligence
 
             # Speed Preference
             if scores.get("explicit_speed_preference"):
-                score += model_manifest.get("speed", 0) * 3
+                score += model_manifest.get("speed", 0) * 1.5 # Reduced multiplier
+
+            # Bug Fix Preference
+            if scores.get("simple_bug_fix") and "bug_fix" in model_manifest.get("strengths", []):
+                score += 3
+
+            # Multi-file impact bonus for moderate changes
+            if 2 <= scores.get("multi_file_impact", 1) <= 4 and "multi_file" in model_manifest.get("strengths", []):
+                score += 2
 
             # Scope Match
             if scores.get("scope_of_change", 1) > 3 and "refactoring" in model_manifest.get(
