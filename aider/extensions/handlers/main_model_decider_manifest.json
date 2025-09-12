@@ -1,22 +1,22 @@
 [
   {
-    "name": "claude-3-haiku-20240307",
+    "name": "gemini-2.5-flash",
     "speed": 9,
     "intelligence": 5,
     "context_window": 200000,
     "strengths": ["simple_correction", "bug_fix"],
-    "cost_rating": 2
+    "cost_rating": 3 
   },
   {
-    "name": "claude-3-sonnet-20240229",
+    "name": "openrouter/deepseek/deepseek-chat-v3.1:free",
     "speed": 6,
     "intelligence": 7,
-    "context_window": 200000,
+    "context_window": 128000,
     "strengths": ["bug_fix", "refactoring", "multi_file"],
-    "cost_rating": 5
+    "cost_rating": 1 
   },
   {
-    "name": "claude-3-opus-20240229",
+    "name": "gemini-2.5-pro",
     "speed": 3,
     "intelligence": 10,
     "context_window": 200000,
