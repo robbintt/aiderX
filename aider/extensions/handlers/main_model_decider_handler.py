@@ -43,14 +43,23 @@ class MainModelDeciderHandler(MutableContextHandler):
         ]
 
         try:
-            _, response = self.handler_model.send_completion(
-                handler_messages,
-                None,
-                stream=False,
-            )
-            if not response or not response.choices:
-                io.tool_warning("Decider model returned empty response.")
-                return False
+            spinner = None
+            if self.main_coder.show_pretty():
+                spinner = WaitingSpinner(f"{self.handler_name}: Waiting for {self.handler_model.name}")
+                spinner.start()
+
+            try:
+                _, response = self.handler_model.send_completion(
+                    handler_messages,
+                    None,
+                    stream=False,
+                )
+                if not response or not response.choices:
+                    io.tool_warning("Decider model returned empty response.")
+                    return False
+            finally:
+                if spinner:
+                    spinner.stop()
 
             content = response.choices[0].message.content
 
@@ -74,6 +83,8 @@ class MainModelDeciderHandler(MutableContextHandler):
             return False
 
         # Simple matrix to select model
+        # The type of use_strong_model is bool, which is what is expected.
+        # If it were a tuple, it would not work as intended for boolean logic.
         use_strong_model = (
             scores.get("precision", 3) < 4
             or scores.get("vague_error", False)
