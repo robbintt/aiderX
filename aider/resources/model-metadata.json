@@ -13,7 +13,7 @@
         "supports_assistant_prefill": true,
         "supports_prompt_caching": false 
     },
-    "deepseek-reasoner": {
+    "deepseek/deepseek-reasoner": {
         "max_tokens": 64000,
         "max_input_tokens": 128000,
         "max_output_tokens": 64000,
@@ -25,9 +25,10 @@
         "litellm_provider": "deepseek",
         "mode": "chat",
         "supports_assistant_prefill": true,
+        "supports_tool_choice": false,
         "supports_prompt_caching": true
     },
-    "deepseek-chat": {
+    "deepseek/deepseek-chat": {
         "max_tokens": 8192,
         "max_input_tokens": 128000,
         "max_output_tokens": 8192,
