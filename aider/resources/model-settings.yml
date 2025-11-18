@@ -1946,6 +1946,21 @@
   use_temperature: false
   accepts_settings: ["reasoning_effort"]
 
+- name: gpt-5.1
+  edit_format: diff
+  weak_model_name: gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+  overeager: true
+
+- name: gpt-5.1-2025-11-13
+  edit_format: diff
+  weak_model_name: gpt-5-nano-2025-08-07
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
 - name: gpt-5-mini
   edit_format: diff
   weak_model_name: gpt-5-nano
@@ -1988,7 +2003,28 @@
   use_temperature: false
   accepts_settings: ["reasoning_effort"]
 
+- name: gpt-5.1-chat
+  edit_format: diff
+  weak_model_name: gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: gpt-5.1-chat-latest
+  edit_format: diff
+  weak_model_name: gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
 - name: gpt-5-codex
+  edit_format: diff
+  weak_model_name: gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: gpt-5.1-codex
   edit_format: diff
   weak_model_name: gpt-5-nano
   use_repo_map: true
@@ -2014,6 +2050,20 @@
   examples_as_sys_msg: true
 
 - name: azure/gpt-5-2025-08-07
+  edit_format: diff
+  weak_model_name: azure/gpt-5-nano-2025-08-07
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: azure/gpt-5.1
+  edit_format: diff
+  weak_model_name: azure/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: azure/gpt-5.1-2025-11-13
   edit_format: diff
   weak_model_name: azure/gpt-5-nano-2025-08-07
   use_repo_map: true
@@ -2062,6 +2112,20 @@
   use_temperature: false
   accepts_settings: ["reasoning_effort"]
 
+- name: azure/gpt-5.1-chat
+  edit_format: diff
+  weak_model_name: azure/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: azure/gpt-5.1-chat-latest
+  edit_format: diff
+  weak_model_name: azure/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
 - name: openai/gpt-5
   edit_format: diff
   weak_model_name: openai/gpt-5-nano
@@ -2081,6 +2145,20 @@
   examples_as_sys_msg: true
 
 - name: openai/gpt-5-2025-08-07
+  edit_format: diff
+  weak_model_name: openai/gpt-5-nano-2025-08-07
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: openai/gpt-5.1
+  edit_format: diff
+  weak_model_name: openai/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: openai/gpt-5.1-2025-11-13
   edit_format: diff
   weak_model_name: openai/gpt-5-nano-2025-08-07
   use_repo_map: true
@@ -2129,6 +2207,20 @@
   use_temperature: false
   accepts_settings: ["reasoning_effort"]
 
+- name: openai/gpt-5.1-chat
+  edit_format: diff
+  weak_model_name: openai/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: openai/gpt-5.1-chat-latest
+  edit_format: diff
+  weak_model_name: openai/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
 - name: openrouter/openai/gpt-5
   edit_format: diff
   weak_model_name: openrouter/openai/gpt-5-nano
@@ -2148,6 +2240,20 @@
   examples_as_sys_msg: true
 
 - name: openrouter/openai/gpt-5-2025-08-07
+  edit_format: diff
+  weak_model_name: openrouter/openai/gpt-5-nano-2025-08-07
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: openrouter/openai/gpt-5.1
+  edit_format: diff
+  weak_model_name: openrouter/openai/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: openrouter/openai/gpt-5.1-2025-11-13
   edit_format: diff
   weak_model_name: openrouter/openai/gpt-5-nano-2025-08-07
   use_repo_map: true
@@ -2196,3 +2302,16 @@
   use_temperature: false
   accepts_settings: ["reasoning_effort"]
 
+- name: openrouter/openai/gpt-5.1-chat
+  edit_format: diff
+  weak_model_name: openrouter/openai/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
+
+- name: openrouter/openai/gpt-5.1-chat-latest
+  edit_format: diff
+  weak_model_name: openrouter/openai/gpt-5-nano
+  use_repo_map: true
+  use_temperature: false
+  accepts_settings: ["reasoning_effort"]
