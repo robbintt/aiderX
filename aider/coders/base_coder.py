@@ -1636,7 +1636,7 @@ class Coder:
                 saved_message = self.gpt_prompts.files_content_gpt_edits_no_repo
 
             self.move_back_cur_messages(saved_message)
-
+            
         if self.reflected_message:
             return
 
@@ -1991,6 +1991,17 @@ class Coder:
         show_content_err = None
         try:
             if completion.choices[0].message.tool_calls:
+                self.partial_response_tool_calls = []
+                for tool_call in completion.choices[0].message.tool_calls:
+                    tool_call_dict = tool_call.model_dump()
+                    if hasattr(tool_call, "provider_specific_fields"):
+                        tool_call_dict["provider_specific_fields"] = (
+                            tool_call.provider_specific_fields
+                        )
+                    if hasattr(tool_call, "extra_content"):
+                        tool_call_dict["extra_content"] = tool_call.extra_content
+                    self.partial_response_tool_calls.append(tool_call_dict)
+
                 self.partial_response_function_call = (
                     completion.choices[0].message.tool_calls[0].function
                 )
@@ -2042,6 +2053,7 @@ class Coder:
 
     def show_send_output_stream(self, completion):
         received_content = False
+        id_index_dict = dict()
 
         for chunk in completion:
             if len(chunk.choices) == 0:
@@ -2088,7 +2100,6 @@ class Coder:
                     if self.got_reasoning_content and not self.ended_reasoning_content:
                         text += f"\n\n</{self.reasoning_tag_name}>\n\n"
                         self.ended_reasoning_content = True
-
                     text += content
                     received_content = True
             except AttributeError:
