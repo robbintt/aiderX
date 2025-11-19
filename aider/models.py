@@ -110,7 +110,7 @@ MODEL_ALIASES = {
 class ModelSettings:
     # Model class needs to have each of these as well
     name: str
-    edit_format: str = "whole"
+    edit_format: str = "diff"
     weak_model_name: Optional[str] = None
     use_repo_map: bool = False
     send_undo_reply: bool = False

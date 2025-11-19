@@ -1,3 +1,27 @@
+- name: openai/glm-4.6:thinking
+  edit_format: diff
+  editor_edit_format: editor-diff
+  use_repo_map: true
+  weak_model_name: openai/glm-4.6:thinking
+
+- name: openai/z-ai/glm-4.6:thinking
+  edit_format: diff
+  editor_edit_format: editor-diff
+  use_repo_map: true
+  weak_model_name: openai/glm-4.6:thinking
+
+- name: gemini/gemini-3-pro-preview
+  overeager: true
+  edit_format: diff-fenced
+  use_repo_map: true
+  weak_model_name: gemini/gemini-2.5-flash-lite
+  use_temperature: false
+  accepts_settings: ["thinking_tokens"]
+  extra_params:
+    thinking:
+      budget_tokens:
+      type: enabled
+
 - name: gpt-3.5-turbo
   weak_model_name: gpt-4o-mini
   reminder: sys
@@ -1448,13 +1472,28 @@
   overeager: true
   edit_format: diff-fenced
   use_repo_map: true
-  weak_model_name: gemini/gemini-2.0-flash
+  weak_model_name: gemini/gemini-2.5-flash-lite
   use_temperature: false
   accepts_settings: ["thinking_tokens"]
   extra_params:
     thinking:
       budget_tokens:
       type: enabled
+
+# 0 to 24576
+- name: deepinfra/google/gemini-2.5-flash
+  overeager: true
+  edit_format: whole
+  use_repo_map: true
+  weak_model_name: gemini/gemini-2.5-flash-lite
+  use_temperature: false
+  accepts_settings: ["thinking_tokens"]
+  extra_params:
+    max_tokens: 2000000
+    thinking:
+      budget_tokens: 24576
+      type: enabled
+
 
 - name: gemini/gemini-2.5-flash-lite-preview-06-17
   overeager: true
