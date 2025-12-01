@@ -1,6 +1,6 @@
 import time
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from requests.exceptions import ConnectionError, ReadTimeout
 
@@ -49,6 +49,9 @@ class TestHelp(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.mock_check = patch("aider.utils.check_pip_install_extra", return_value=True)
+        cls.mock_check.start()
+
         io = InputOutput(pretty=False, yes=True)
 
         GPT35 = Model("gpt-3.5-turbo")
@@ -65,13 +68,16 @@ class TestHelp(unittest.TestCase):
             except aider.commands.SwitchCoder:
                 pass
             else:
-                # If no exception was raised, fail the test
-                assert False, "SwitchCoder exception was not raised"
+                raise AssertionError("SwitchCoder exception was not raised")
 
         # Use retry with backoff for the help command that loads models
         cls.retry_with_backoff(run_help_command)
 
         help_coder_run.assert_called_once()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_check.stop()
 
     def test_init(self):
         help_inst = Help()
