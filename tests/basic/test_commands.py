@@ -339,7 +339,7 @@ class TestCommands(TestCase):
 
         commands.cmd_add("foo.bad")
 
-        self.assertEqual(coder.abs_fnames, set())
+        self.assertEqual(coder.abs_fnames, [])
 
     def test_cmd_git(self):
         # Initialize the Commands and InputOutput objects
@@ -1049,7 +1049,7 @@ class TestCommands(TestCase):
             f.write(some_content_which_will_error_if_read_with_encoding_utf8)
 
         commands.cmd_add("file.txt")
-        self.assertEqual(coder.abs_fnames, set())
+        self.assertEqual(coder.abs_fnames, [])
 
     def test_cmd_add_read_only_file(self):
         with GitTemporaryDirectory():
@@ -1916,7 +1916,7 @@ class TestCommands(TestCase):
 
             # Add files to the chat
             coder.abs_read_only_fnames.add(str(orig_read_only))
-            coder.abs_fnames.add(str(added_file))
+            coder.add_abs_fnames([str(added_file)])
             coder.abs_read_only_fnames.add(str(added_read_only))
 
             # Add some messages to the chat history
@@ -1959,7 +1959,7 @@ class TestCommands(TestCase):
             commands = Commands(io, coder)
 
             # Add files to the chat
-            coder.abs_fnames.add(str(added_file))
+            coder.add_abs_fnames([str(added_file)])
             coder.abs_read_only_fnames.add(str(added_read_only))
 
             # Add some messages to the chat history
@@ -2027,7 +2027,7 @@ class TestCommands(TestCase):
 
             # Add files to the chat
             coder.abs_read_only_fnames.add(str(orig_read_only))
-            coder.abs_fnames.add(str(added_file))
+            coder.add_abs_fnames([str(added_file)])
             coder.abs_read_only_fnames.add(str(added_read_only))
 
             # Verify initial state
@@ -2087,7 +2087,7 @@ class TestCommands(TestCase):
             commands = Commands(io, coder)
 
             # Add files to the chat
-            coder.abs_fnames.add(str(added_file))
+            coder.add_abs_fnames([str(added_file)])
             coder.abs_read_only_fnames.add(str(added_read_only))
 
             # Verify initial state
@@ -2161,7 +2161,7 @@ class TestCommands(TestCase):
 
             # Populate coder's file sets
             orig_coder.abs_read_only_fnames.add(str(orig_ro_path))
-            orig_coder.abs_fnames.add(str(editable_path))
+            orig_coder.add_abs_fnames([str(editable_path)])
             orig_coder.abs_read_only_fnames.add(str(other_ro_path))
 
             # Simulate SwitchCoder by creating a new coder from the original one
@@ -2206,7 +2206,7 @@ class TestCommands(TestCase):
             orig_coder.commands.coder = orig_coder
 
             orig_coder.abs_read_only_fnames.add(str(orig_ro_path))
-            orig_coder.abs_fnames.add(str(editable_path))
+            orig_coder.add_abs_fnames([str(editable_path)])
             orig_coder.abs_read_only_fnames.add(str(other_ro_path))
             orig_coder.done_messages = [{"role": "user", "content": "d1"}]
             orig_coder.cur_messages = [{"role": "user", "content": "c1"}]
