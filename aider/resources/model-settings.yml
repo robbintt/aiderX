@@ -1,8 +1,36 @@
-- name: openai/glm-4.6:thinking
+
+- name: openrouter/z-ai/glm-4.6
   edit_format: diff
   editor_edit_format: editor-diff
   use_repo_map: true
-  weak_model_name: openai/glm-4.6:thinking
+  weak_model_name: openrouter/z-ai/glm-4.6
+  extra_params:
+    disable_reasoning: false
+
+- name: openrouter/z-ai/glm-4.6:thinking
+  edit_format: diff
+  editor_edit_format: editor-diff
+  use_repo_map: true
+  weak_model_name: openrouter/z-ai/glm-4.6:nonthinking
+  extra_params:
+    disable_reasoning: false
+
+- name: openrouter/z-ai/glm-4.6:nonthinking
+  edit_format: diff
+  editor_edit_format: editor-diff
+  use_repo_map: true
+  weak_model_name: openrouter/z-ai/glm-4.6:nonthinking
+  extra_params:
+    disable_reasoning: true
+
+- name: cerebras/zai-glm-4.6
+  #streaming: false
+  edit_format: diff
+  editor_edit_format: editor-diff
+  use_repo_map: true
+  weak_model_name: cerebras/zai-glm-4.6
+  extra_params:
+    disable_reasoning: false
 
 - name: openai/z-ai/glm-4.6:thinking
   edit_format: diff
