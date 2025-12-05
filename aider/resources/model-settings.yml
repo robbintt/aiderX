@@ -16,10 +16,10 @@
   use_repo_map: true
   weak_model_name: gemini/gemini-2.5-flash-lite
   use_temperature: false
-  accepts_settings: ["thinking_tokens"]
+  accepts_settings: ["reasoning_effort"]
   extra_params:
     thinking:
-      budget_tokens:
+      #budget_tokens:
       type: enabled
 
 - name: gpt-3.5-turbo
