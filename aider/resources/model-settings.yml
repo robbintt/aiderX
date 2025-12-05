@@ -4,6 +4,12 @@
   use_repo_map: true
   weak_model_name: openai/glm-4.6:thinking
 
+- name: cerebras/zai-glm-4.6
+  edit_format: diff
+  editor_edit_format: editor-diff
+  use_repo_map: true
+  weak_model_name: gemini/gemini-2.5-flash-lite
+
 - name: openai/z-ai/glm-4.6:thinking
   edit_format: diff
   editor_edit_format: editor-diff
