@@ -2,6 +2,32 @@
     <a href="https://aider.chat/"><img src="https://aider.chat/assets/logo.svg" alt="Aider Logo" width="300"></a>
 </p>
 
+<h1>AiderX: branch or fork?</h1>
+
+<p> Note: AiderX tracks changes from Aider and maintains compatibility.  AiderX does not desire to fork Aider, but Aider is no longer actively maintained. AiderX does not merge breaking changes and is conservative about divergences from mainline. If Aider mainline ever reviews pull requests in the future, AiderX will seek to merge to Aider mainline.
+
+Due to the lack of another active target, AiderX currently seeks to eventually merge into Aider CE. As such, AiderX will cherry-pick or merge Aider CE changes to conservatively catch up, eventually swapping CE for main.
+
+There will be a notice before AiderX breaks compatibility with Aider. This trajectory is currently expected.
+
+<h2> Pull Requests </h2>
+
+Generally, please PR to Aider CE instead of AiderX. Bugfixes and handlers may be accepted. AiderX only receives conservative pull requests.
+
+Please consider this a personal branch that you may use or fork.
+
+<h2>Draft of changes from mainline:</h2>
+
+<p>
+- fix bug silently dropping changes when the LLM adds a file in the same round as changes
+- add handlers extension feature with "pre" and "post" hook points so far - with autotest post handler, file add pre handler, and mcp pre handler, allows for separate LLM configuration for handlers
+- add PKM mode for personal organization
+- add experimental CBT mode: For Development Only! LLMs are not therapists, it's just a document organizer.
+- experimental branch with auto model selection pre handler and coder refactored into handler (ready but breaks compatibility and needs some simplification)
+- experimental tui branch (not ready for use)
+- reduce hardcoded retry delay calculation to 2, 8, and 32 seconds
+- fix Aider mainline unit test failures on trunk
+
 <h1 align="center">
 AI Pair Programming in Your Terminal
 </h1>
