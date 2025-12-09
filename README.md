@@ -18,15 +18,16 @@ Please consider this a personal branch that you may use or fork.
 
 <h2>Draft of changes from mainline:</h2>
 
-<p>
-- fix bug silently dropping changes when the LLM adds a file in the same round as changes
-- add handlers extension feature with "pre" and "post" hook points so far - with autotest post handler, file add pre handler, and mcp pre handler, allows for separate LLM configuration for handlers
-- add PKM mode for personal organization
-- add experimental CBT mode: For Development Only! LLMs are not therapists, it's just a document organizer.
-- experimental branch with auto model selection pre handler and coder refactored into handler (ready but breaks compatibility and needs some simplification)
-- experimental tui branch (not ready for use)
-- reduce hardcoded retry delay calculation to 2, 8, and 32 seconds
-- fix Aider mainline unit test failures on trunk
+<ul>
+<li>fix bug silently dropping changes when the LLM adds a file in the same round as changes</li>
+<li>add handlers extension feature with "pre" and "post" hook points so far &ndash; with autotest post handler, file add pre handler, and mcp pre handler, allows for separate LLM configuration for handlers</li>
+<li>add PKM mode for personal organization</li>
+<li>add experimental CBT mode: For Development Only! LLMs are not therapists, it's just a document organizer</li>
+<li>experimental branch with auto model selection pre handler and coder refactored into handler (ready but breaks compatibility and needs some simplification)</li>
+<li>experimental tui branch (not ready for use)</li>
+<li>reduce hardcoded retry delay calculation to 2, 8, and 32 seconds</li>
+<li>fix Aider mainline unit test failures on trunk</li>
+</ul>
 
 <h1 align="center">
 AI Pair Programming in Your Terminal
