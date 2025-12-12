@@ -1,5 +1,8 @@
 #!/bin/bash
 
+shopt -s expand_aliases
+alias docker=podman
+
 docker run \
        -it --rm \
        --memory=12g \
