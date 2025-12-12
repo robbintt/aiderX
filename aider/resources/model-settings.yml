@@ -32,8 +32,10 @@
   editor_edit_format: editor-diff
   use_repo_map: true
   weak_model_name: cerebras/zai-glm-4.6
+  use_temperature: 1.0
   extra_params:
     disable_reasoning: false
+    #top_p: 0.95
 
 - name: openai/z-ai/glm-4.6:thinking
   edit_format: diff
