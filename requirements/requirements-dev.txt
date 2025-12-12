@@ -85,12 +85,12 @@ googleapis-common-protos==1.72.0
     #   -c requirements/common-constraints.txt
     #   google-api-core
     #   grpcio-status
-grpcio==1.76.0
+grpcio==1.67.1
     # via
     #   -c requirements/common-constraints.txt
     #   google-api-core
     #   grpcio-status
-grpcio-status==1.71.2
+grpcio-status==1.67.1
     # via
     #   -c requirements/common-constraints.txt
     #   google-api-core
@@ -268,7 +268,6 @@ typer==0.20.0
 typing-extensions==4.15.0
     # via
     #   -c requirements/common-constraints.txt
-    #   grpcio
     #   typer
 tzdata==2025.2
     # via
