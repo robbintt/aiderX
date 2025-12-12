@@ -324,12 +324,15 @@ def main(
     model_metadata_files_loaded = models.register_litellm_models([resource_metadata])
     dump(model_metadata_files_loaded)
 
+    # Register model settings BEFORE creating any model instances
     if read_model_settings:
         try:
             files_loaded = models.register_models([read_model_settings])
             if verbose:
                 if files_loaded:
                     print(f"Loaded model settings from: {files_loaded[0]}")
+                    # Debug: Show what settings were loaded
+                    print(f"Registered settings for cerebras/zai-glm-4.6")
                 else:
                     print(f"No model settings loaded from: {read_model_settings}")
         except Exception as e:
@@ -798,6 +801,8 @@ def run_test_real(
         editor_model=editor_model,
         editor_edit_format=editor_edit_format,
         verbose=verbose,
+        # Pass through all model settings from the configuration
+        read_model_settings=read_model_settings,
     )
 
     if reasoning_effort is not None:
@@ -875,6 +880,7 @@ def run_test_real(
 
             coder.apply_updates()
         else:
+            # First response
             response = coder.run(with_message=instructions, preproc=False)
 
         dur += time.time() - start
@@ -903,22 +909,24 @@ def run_test_real(
 
         if errors:
             test_outcomes.append(False)
+            
+            if replay:
+                io.append_chat_history(errors)
+
+            errors_split = errors.splitlines()
+            syntax_errors += sum(1 for line in errors_split if line.startswith("SyntaxError"))
+            indentation_errors += sum(1 for line in errors_split if line.startswith("IndentationError"))
+
+            print(errors_split[-1])
+            instructions = "\n".join(errors_split)
+            instructions += prompts.test_failures.format(file_list=file_list)
+            
+            # Second response if tests failed - send the errors and continuation prompt
+            list(coder.send_message(instructions))
+            response = coder.partial_response_content
         else:
             test_outcomes.append(True)
             break
-
-        if replay:
-            io.append_chat_history(errors)
-
-        errors = errors.splitlines()
-
-        syntax_errors += sum(1 for line in errors if line.startswith("SyntaxError"))
-        indentation_errors += sum(1 for line in errors if line.startswith("IndentationError"))
-
-        print(errors[-1])
-        errors = "\n".join(errors)
-        instructions = errors
-        instructions += prompts.test_failures.format(file_list=file_list)
 
     # Clean up build directories after all attempts
     # Rust target/debug
