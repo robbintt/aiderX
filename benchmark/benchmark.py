@@ -807,6 +807,7 @@ def run_test_real(
         main_model.set_thinking_tokens(thinking_tokens)
 
     dump(main_model.max_chat_history_tokens)
+    dump(main_model)
 
     if num_ctx:
         if not main_model.extra_params:
