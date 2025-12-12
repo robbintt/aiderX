@@ -806,6 +806,20 @@ def run_test_real(
     if thinking_tokens is not None:
         main_model.set_thinking_tokens(thinking_tokens)
 
+    # Debug: Print key reasoning settings to verify they're applied
+    print(f"Model name: {main_model.name}")
+    print(f"Model inline_reasoning: {getattr(main_model, 'inline_reasoning', 'Not set')}")
+    print(f"Model reasoning_format: {getattr(main_model, 'reasoning_format', 'Not set')}")
+    print(f"Model streaming: {getattr(main_model, 'streaming', 'Not set')}")
+    
+    # Debug: Check what settings were actually loaded
+    print(f"Available MODEL_SETTINGS count: {len(models.MODEL_SETTINGS)}")
+    for ms in models.MODEL_SETTINGS:
+        if 'cerebras' in ms.name:
+            print(f"Found setting: {ms.name}")
+            print(f"  inline_reasoning: {getattr(ms, 'inline_reasoning', 'Not set')}")
+            print(f"  reasoning_format: {getattr(ms, 'reasoning_format', 'Not set')}")
+    
     dump(main_model.max_chat_history_tokens)
     dump(main_model)
 
