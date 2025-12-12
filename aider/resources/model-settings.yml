@@ -24,7 +24,10 @@
     disable_reasoning: true
 
 - name: cerebras/zai-glm-4.6
-  #streaming: false
+  streaming: false
+  inline_reasoning: true
+  reasoning_format: "THINKING\n{reasoning}\n\nANSWER\n{content}" # this is default
+  #reasoning_format: "Reasoning block: \n{reasoning}\n\nAnswer: {content}"
   edit_format: diff
   editor_edit_format: editor-diff
   use_repo_map: true
