@@ -128,6 +128,8 @@ class ModelSettings:
     editor_model_name: Optional[str] = None
     editor_edit_format: Optional[str] = None
     reasoning_tag: Optional[str] = None
+    inline_reasoning: bool = False
+    reasoning_format: Optional[str] = None
     remove_reasoning: Optional[str] = None  # Deprecated alias for reasoning_tag
     system_prompt_prefix: Optional[str] = None
     accepts_settings: Optional[list] = None

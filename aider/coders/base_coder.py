@@ -111,6 +111,7 @@ class Coder:
     multi_response_content = ""
     partial_response_content = ""
     commit_before_message = []
+    full_response_with_reasoning = ""
     message_cost = 0.0
     add_cache_headers = False
     cache_warming_thread = None
@@ -1809,8 +1810,11 @@ class Coder:
         self.ok_to_warm_cache = False
 
     def add_assistant_reply_to_cur_messages(self):
-        if self.partial_response_content:
-            self.cur_messages += [dict(role="assistant", content=self.partial_response_content)]
+        # Use the specially formatted response for history if it exists
+        content_to_save = self.full_response_with_reasoning or self.partial_response_content
+
+        if content_to_save:
+            self.cur_messages += [dict(role="assistant", content=content_to_save)]
         if self.partial_response_function_call:
             self.cur_messages += [
                 dict(
@@ -1819,6 +1823,15 @@ class Coder:
                     function_call=self.partial_response_function_call,
                 )
             ]
+
+    def _format_inline_reasoning(self, reasoning, content):
+        """
+        Formats reasoning and content into a single string if the model is configured for inline reasoning.
+        """
+        if not self.main_model.inline_reasoning or not reasoning or not self.main_model.reasoning_format:
+            return ""
+
+        return self.main_model.reasoning_format.format(reasoning=reasoning, content=content)
 
     def get_file_mentions(self, content, ignore_current=False):
         words = set(word for word in content.split())
@@ -2063,6 +2076,10 @@ class Coder:
         except AttributeError as content_err:
             show_content_err = content_err
 
+        self.full_response_with_reasoning = self._format_inline_reasoning(
+            reasoning_content, self.partial_response_content
+        )
+
         resp_hash = dict(
             function_call=str(self.partial_response_function_call),
             content=self.partial_response_content,
@@ -2095,6 +2112,9 @@ class Coder:
 
     def show_send_output_stream(self, completion):
         received_content = False
+
+        streaming_reasoning = ""
+        streaming_content = ""
 
         for chunk in completion:
             if len(chunk.choices) == 0:
@@ -2147,6 +2167,14 @@ class Coder:
             except AttributeError:
                 pass
 
+            if self.main_model.inline_reasoning:
+                if reasoning_content:
+                    streaming_reasoning += reasoning_content
+                    received_content = True
+                if content:
+                    streaming_content += content
+                    received_content = True
+
             if received_content:
                 self._stop_waiting_spinner()
             self.partial_response_content += text
@@ -2169,6 +2197,12 @@ class Coder:
 
         if not received_content:
             self.io.tool_warning("Empty response received from LLM. Check your provider account?")
+        
+        self.full_response_with_reasoning = self._format_inline_reasoning(
+            streaming_reasoning, streaming_content
+        )
+        if self.full_response_with_reasoning:
+            self.partial_response_content = streaming_content
 
     def live_incremental_response(self, final):
         show_resp = self.render_incremental_response(final)
