@@ -345,10 +345,10 @@ def main(
         test_dnames = test_dnames[:num_tests]
 
     # Don't give up when benchmarking
-    LONG_TIMEOUT = 24 * 60 * 60
-    sendchat.RETRY_TIMEOUT = LONG_TIMEOUT
-    base_coder.RETRY_TIMEOUT = LONG_TIMEOUT
-    models.RETRY_TIMEOUT = LONG_TIMEOUT
+    RETRY_TIMEOUT_SECONDS = 2 * 60  # 2 minutes
+    sendchat.RETRY_TIMEOUT = RETRY_TIMEOUT_SECONDS
+    base_coder.RETRY_TIMEOUT = RETRY_TIMEOUT_SECONDS
+    models.RETRY_TIMEOUT = RETRY_TIMEOUT_SECONDS
 
     if threads == 1:
         all_results = []
