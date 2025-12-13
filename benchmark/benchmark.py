@@ -356,6 +356,7 @@ def main(
             results = run_test(
                 original_dname,
                 dirname / test_path,
+                dirname,
                 model,
                 edit_format,
                 tries,
@@ -382,6 +383,7 @@ def main(
             run_test_threaded.scatter(
                 original_dname,
                 dirname / test_path,
+                dirname,
                 model,
                 edit_format,
                 tries,
@@ -663,9 +665,9 @@ def get_replayed_content(replay_dname, test_dname):
     return "".join(res)
 
 
-def run_test(original_dname, testdir, *args, **kwargs):
+def run_test(original_dname, testdir, benchmark_dir, *args, **kwargs):
     try:
-        return run_test_real(original_dname, testdir, *args, **kwargs)
+        return run_test_real(original_dname, testdir, benchmark_dir, *args, **kwargs)
     except Exception:
         print("=" * 40)
         print("Test failed")
@@ -679,6 +681,7 @@ def run_test(original_dname, testdir, *args, **kwargs):
 def run_test_real(
     original_dname,
     testdir,
+    benchmark_dir,
     model_name,
     edit_format,
     tries,
@@ -989,6 +992,15 @@ def run_test_real(
     dump(results)
 
     results_fname.write_text(json.dumps(results, indent=4))
+
+    # Write chat history after test completion to the timestamped benchmark directory
+    if history_fname.exists():
+        history_content = history_fname.read_text()
+        if history_content:
+            # Write to the specific timestamped benchmark directory (e.g., 2025-12-12-19-43-33--name)
+            test_name = testdir.name
+            benchmark_history_file = benchmark_dir / f"{test_name}_chat_history.md"
+            benchmark_history_file.write_text(history_content)
 
     return results
 

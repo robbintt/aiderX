@@ -1136,6 +1136,17 @@ class InputOutput:
                 print(err)
                 self.chat_history_file = None  # Disable further attempts to write
 
+    def write_chat_history(self, done_messages, cur_messages):
+        """Write the complete in-memory chat history to the history file."""
+        if not self.chat_history_file:
+            return
+
+        history = ""
+        for msg in done_messages + cur_messages:
+            history += f"## {msg['role'].upper()}\n\n{msg['content']}\n\n"
+
+        self.write_text(self.chat_history_file, history)
+
     def format_files_for_input(self, rel_fnames, rel_read_only_fnames):
         if not self.pretty:
             read_only_files = []

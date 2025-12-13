@@ -953,6 +953,7 @@ class Coder:
             if with_message:
                 self.io.user_input(with_message)
                 self.run_one(with_message, preproc)
+                self.io.write_chat_history(self.done_messages, self.cur_messages)
                 return self.partial_response_content
             while True:
                 try:
