@@ -798,7 +798,6 @@ def run_test_real(
         editor_model=editor_model,
         editor_edit_format=editor_edit_format,
         verbose=verbose,
-        read_model_settings=read_model_settings,
     )
 
     if reasoning_effort is not None:
