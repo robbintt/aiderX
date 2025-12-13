@@ -356,9 +356,11 @@ class Coder:
         auto_accept_architect=True,
         llm_command=None,
         handlers=None,
+        raw_log_file=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
+        self.raw_log_file = raw_log_file
 
         self.event = self.analytics.event
         self.chat_language = chat_language
@@ -740,7 +742,7 @@ class Coder:
                 prompt += relative_fname
                 prompt += f"\n{self.fence[0]}\n"
                 prompt += content
-                prompt += f"{self.fence[1]}\n"
+                prompt += f"\n{self.fence[1]}\n"
         return prompt
 
     def get_cur_message_text(self):
@@ -953,6 +955,7 @@ class Coder:
             if with_message:
                 self.io.user_input(with_message)
                 self.run_one(with_message, preproc)
+                self.io.write_chat_history(self.done_messages, self.cur_messages)
                 return self.partial_response_content
             while True:
                 try:
@@ -1492,6 +1495,76 @@ class Coder:
                 return False
         return True
 
+    def log_raw_response(self, completion, messages, model):
+        """Log raw request/response data to a separate file."""
+        try:
+            # Create response message entry as it would appear in messages list
+            response_message = {
+                "role": "assistant", 
+                "content": self.partial_response_content
+            }
+            
+            # Include response message in logged messages with reasoning
+            messages_with_response = list(messages)
+            
+            # Create the content for logging with reasoning if available
+            response_content = self.partial_response_content
+            reasoning_content = None
+            
+            # Extract reasoning from the response if available
+            if completion and hasattr(completion, 'choices') and completion.choices:
+                try:
+                    reasoning_content = completion.choices[0].message.reasoning_content
+                except AttributeError:
+                    try:
+                        reasoning_content = completion.choices[0].message.reasoning
+                    except AttributeError:
+                        reasoning_content = None
+            
+            response_content = self._format_inline_reasoning(reasoning_content, response_content)
+            
+            response_message["content"] = response_content
+            messages_with_response.append(response_message)
+            
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "model": model,
+                "messages": messages_with_response,
+                "response": completion.json() if hasattr(completion, "json") else str(completion),
+            }
+            
+            # Format the log entry for readability in the markdown file
+            log_lines = [
+                f"### Raw LLM interaction at {log_entry['timestamp']}",
+                f"**Model:** `{log_entry['model']}`",
+                "",
+                "**Request Messages:**",
+                "```json",
+                json.dumps(log_entry["messages"], indent=2),
+                "```",
+                "",
+                "**Response Object:**",
+                "```json",
+                json.dumps(log_entry["response"], indent=2),
+                "```",
+                "---",
+                ""
+            ]
+
+            log_content = "\n".join(log_lines)
+            
+            # Use custom path if provided, otherwise default to old behavior
+            if self.raw_log_file:
+                raw_response_file = self.raw_log_file
+            else:
+                raw_response_file = os.path.join(self.root, ".aider.raw.txt")
+            
+            self.io.write_text(raw_response_file, log_content, append=True)
+
+        except Exception as e:
+            self.io.tool_warning(f"Failed to write raw response: {e}")
+
+
     def send_message(self, inp):
         self.event("message_send_starting")
 
@@ -1824,12 +1897,13 @@ class Coder:
                 )
             ]
 
-    def _format_inline_reasoning(self, reasoning, content):
+    def _format_inline_reasoning(self, reasoning, content, reasoning_format="THINKING\n{reasoning}\n\nANSWER\n{content}"):
         """
         Formats reasoning and content into a single string if the model is configured for inline reasoning.
         """
-        if not self.main_model.inline_reasoning or not reasoning or not self.main_model.reasoning_format:
-            return ""
+        # note: return the reasoning format so the LLM knows it is empty
+        if not self.main_model.inline_reasoning:
+            return content
 
         return self.main_model.reasoning_format.format(reasoning=reasoning, content=content)
 
@@ -2002,6 +2076,10 @@ class Coder:
         self.io.log_llm_history("TO LLM", format_messages(messages))
 
         completion = None
+        
+        # Store messages for logging before the API call
+        messages_for_logging = messages
+
         try:
             hash_object, completion = model.send_completion(
                 messages,
@@ -2009,6 +2087,7 @@ class Coder:
                 self.stream,
                 self.temperature,
             )
+            
             self.chat_completion_call_hashes.append(hash_object.hexdigest())
 
             if self.stream:
@@ -2019,11 +2098,18 @@ class Coder:
             # Calculate costs for successful responses
             self.calculate_and_show_tokens_and_cost(messages, completion)
 
+            # Log the raw response after the API call is complete
+            if completion:
+                self.log_raw_response(completion, messages_for_logging, model.name)
+
         except LiteLLMExceptions().exceptions_tuple() as err:
             ex_info = LiteLLMExceptions().get_ex_info(err)
             if ex_info.name == "ContextWindowExceededError":
                 # Still calculate costs for context window errors
                 self.calculate_and_show_tokens_and_cost(messages, completion)
+                # Log the raw response even for errors
+                if completion:
+                    self.log_raw_response(completion, messages_for_logging, model.name)
             raise
         except KeyboardInterrupt as kbi:
             self.keyboard_interrupt()
