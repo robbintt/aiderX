@@ -1037,14 +1037,17 @@ def run_unit_tests(original_dname, testdir, history_fname, test_files):
                 content = re.sub(r"@Disabled\([^)]*\)\s*\n", "", content)
                 test_file.write_text(content)
 
-    print(" ".join(command))
+    # Prepend the external 'timeout' command to the test command
+    # The 'timeout' command will send SIGKILL ( -s KILL ) after 180 seconds ( -k 1s )
+    # to the command if it doesn't terminate on its own.
+    command_with_timeout = ["timeout", "-k", "1s", str(timeout)] + command
+    print(" ".join(command_with_timeout))
 
     result = subprocess.run(
-        command,
+        command_with_timeout,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        timeout=timeout,
         cwd=testdir,
         encoding="utf-8",
         errors="replace",
