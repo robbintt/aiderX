@@ -909,21 +909,23 @@ def run_test_real(
 
         if errors:
             test_outcomes.append(False)
-            
-            if replay:
-                io.append_chat_history(errors)
 
-            errors_split = errors.splitlines()
-            syntax_errors += sum(1 for line in errors_split if line.startswith("SyntaxError"))
-            indentation_errors += sum(1 for line in errors_split if line.startswith("IndentationError"))
+        if replay:
+            io.append_chat_history(errors)
 
-            print(errors_split[-1])
-            instructions = "\n".join(errors_split)
-            instructions += prompts.test_failures.format(file_list=file_list)
-            
-            # Second response if tests failed - send the errors and continuation prompt
-            list(coder.send_message(instructions))
-            response = coder.partial_response_content
+        errors = errors.splitlines()
+
+        syntax_errors += sum(1 for line in errors if line.startswith("SyntaxError"))
+        indentation_errors += sum(1 for line in errors if line.startswith("IndentationError"))
+
+        print(errors[-1])
+        errors = "\n".join(errors)
+        instructions = errors
+        instructions += prompts.test_failures.format(file_list=file_list)
+
+        # Second response if tests failed - send the errors and continuation prompt
+        list(coder.send_message(instructions))
+        response = coder.partial_response_content
         else:
             test_outcomes.append(True)
             break
