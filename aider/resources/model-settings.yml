@@ -27,8 +27,8 @@
   streaming: false
   inline_reasoning: true
   reasoning_format: "Reasoning block: \n{reasoning}\n\nAnswer: {content}"
-  edit_format: diff
-  editor_edit_format: editor-diff
+  edit_format: whole
+  editor_edit_format: editor-whole
   use_repo_map: true
   weak_model_name: cerebras/zai-glm-4.6
   use_temperature: 1.0
