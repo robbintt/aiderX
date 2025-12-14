@@ -1260,9 +1260,6 @@ class Coder:
         if user_lang:
             final_reminders.append(f"Reply in {user_lang}.\n")
 
-        # Add temporary instruction to think hard before answering
-        final_reminders.append("Think step-by-step. Explain your reasoning before giving a final answer.\nthinking: ultrathink.\nexam_mode: true.\nUltrathink before answering.\n")
-
         platform_text = self.get_platform_info()
 
         if self.suggest_shell_commands:
