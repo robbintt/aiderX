@@ -1524,7 +1524,7 @@ class Coder:
             log_content = "\n".join(log_lines)
             
             # Write to the hardcoded file path
-            raw_response_file = os.path.join(self.root, ".aider.responses.raw")
+            raw_response_file = os.path.join(self.root, ".aider.raw.txt")
             self.io.write_text(raw_response_file, log_content, append=True)
 
         except Exception as e:
