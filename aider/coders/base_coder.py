@@ -740,7 +740,7 @@ class Coder:
                 prompt += relative_fname
                 prompt += f"\n{self.fence[0]}\n"
                 prompt += content
-                prompt += f"{self.fence[1]}\n"
+                prompt += f"\n{self.fence[1]}\n"
         return prompt
 
     def get_cur_message_text(self):
@@ -1493,14 +1493,13 @@ class Coder:
                 return False
         return True
 
-    def log_raw_response(self, response, **kwargs):
-        """Callback function to log raw request/response data to a separate file."""
+    def log_raw_response(self, response, messages, model):
+        """Log raw request/response data to a separate file."""
         try:
-            # `litellm` provides the full request and response in the kwargs.
             log_entry = {
                 "timestamp": datetime.now().isoformat(),
-                "model": kwargs.get("model", "unknown"),
-                "messages": kwargs.get("messages", []),
+                "model": model,
+                "messages": messages,
                 "response": response.json() if hasattr(response, "json") else str(response),
             }
             
@@ -2033,9 +2032,6 @@ class Coder:
             self.usage_report = "Tokens: unknown, Cost: unknown for llm-command"
             return
 
-        # Prepare callback for raw logging
-        callbacks = [self.log_raw_response]
-
         self.got_reasoning_content = False
         self.ended_reasoning_content = False
 
@@ -2045,14 +2041,18 @@ class Coder:
         self.io.log_llm_history("TO LLM", format_messages(messages))
 
         completion = None
+        
+        # Store messages for logging before the API call
+        messages_for_logging = messages
+
         try:
             hash_object, completion = model.send_completion(
                 messages,
                 functions,
                 self.stream,
                 self.temperature,
-                extra_kwargs={"callbacks": callbacks}
             )
+            
             self.chat_completion_call_hashes.append(hash_object.hexdigest())
 
             if self.stream:
@@ -2063,11 +2063,18 @@ class Coder:
             # Calculate costs for successful responses
             self.calculate_and_show_tokens_and_cost(messages, completion)
 
+            # Log the raw response after the API call is complete
+            if completion:
+                self.log_raw_response(completion, messages_for_logging, model.name)
+
         except LiteLLMExceptions().exceptions_tuple() as err:
             ex_info = LiteLLMExceptions().get_ex_info(err)
             if ex_info.name == "ContextWindowExceededError":
                 # Still calculate costs for context window errors
                 self.calculate_and_show_tokens_and_cost(messages, completion)
+                # Log the raw response even for errors
+                if completion:
+                    self.log_raw_response(completion, messages_for_logging, model.name)
             raise
         except KeyboardInterrupt as kbi:
             self.keyboard_interrupt()
