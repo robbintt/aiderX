@@ -475,22 +475,27 @@ class InputOutput:
                 self.tool_error("Use --encoding to set the unicode encoding.")
             return
 
-    def write_text(self, filename, content, max_retries=5, initial_delay=0.1):
+    def write_text(self, filename, content, max_retries=5, initial_delay=0.1, append=False):
         """
         Writes content to a file, retrying with progressive backoff if the file is locked.
+        Can optionally append to the file instead of overwriting.
 
         :param filename: Path to the file to write.
         :param content: Content to write to the file.
         :param max_retries: Maximum number of retries if a file lock is encountered.
         :param initial_delay: Initial delay (in seconds) before the first retry.
+        :param append: If True, append to the file; otherwise, overwrite it.
         """
         if self.dry_run:
             return
 
+        # Determine the file mode based on the append flag
+        mode = "a" if append else "w"
+
         delay = initial_delay
         for attempt in range(max_retries):
             try:
-                with open(str(filename), "w", encoding=self.encoding, newline=self.newline) as f:
+                with open(str(filename), mode, encoding=self.encoding, newline=self.newline) as f:
                     f.write(content)
                 return  # Successfully wrote the file
             except PermissionError as err:

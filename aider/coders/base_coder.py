@@ -1493,6 +1493,45 @@ class Coder:
                 return False
         return True
 
+    def log_raw_response(self, response, **kwargs):
+        """Callback function to log raw request/response data to a separate file."""
+        try:
+            # `litellm` provides the full request and response in the kwargs.
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "model": kwargs.get("model", "unknown"),
+                "messages": kwargs.get("messages", []),
+                "response": response.json() if hasattr(response, "json") else str(response),
+            }
+            
+            # Format the log entry for readability in the markdown file
+            log_lines = [
+                f"### Raw LLM interaction at {log_entry['timestamp']}",
+                f"**Model:** `{log_entry['model']}`",
+                "",
+                "**Request Messages:**",
+                "```json",
+                json.dumps(log_entry["messages"], indent=2),
+                "```",
+                "",
+                "**Response Object:**",
+                "```json",
+                json.dumps(log_entry["response"], indent=2),
+                "```",
+                "---",
+                ""
+            ]
+
+            log_content = "\n".join(log_lines)
+            
+            # Write to the hardcoded file path
+            raw_response_file = os.path.join(self.root, ".aider.responses.raw")
+            self.io.write_text(raw_response_file, log_content, append=True)
+
+        except Exception as e:
+            self.io.tool_warning(f"Failed to write raw response to {raw_response_file}: {e}")
+
+
     def send_message(self, inp):
         self.event("message_send_starting")
 
@@ -1994,6 +2033,9 @@ class Coder:
             self.usage_report = "Tokens: unknown, Cost: unknown for llm-command"
             return
 
+        # Prepare callback for raw logging
+        callbacks = [self.log_raw_response]
+
         self.got_reasoning_content = False
         self.ended_reasoning_content = False
 
@@ -2009,6 +2051,7 @@ class Coder:
                 functions,
                 self.stream,
                 self.temperature,
+                extra_kwargs={"callbacks": callbacks}
             )
             self.chat_completion_call_hashes.append(hash_object.hexdigest())
 
