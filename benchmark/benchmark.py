@@ -837,6 +837,9 @@ def run_test_real(
     show_fnames = ",".join(map(str, fnames))
     print("fnames:", show_fnames)
 
+    # Set the path for the raw log file in the benchmark root
+    raw_log_path = Path(benchmark_dir) / ".aider.raw.txt"
+
     coder = Coder.create(
         main_model,
         edit_format,
@@ -849,6 +852,7 @@ def run_test_real(
         cache_prompts=True,
         suggest_shell_commands=False,
         ignore_mentions=ignore_files,
+        raw_log_file=str(raw_log_path),
     )
     dump(coder.ignore_mentions)
 

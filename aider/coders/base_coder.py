@@ -356,9 +356,11 @@ class Coder:
         auto_accept_architect=True,
         llm_command=None,
         handlers=None,
+        raw_log_file=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
+        self.raw_log_file = raw_log_file
 
         self.event = self.analytics.event
         self.chat_language = chat_language
@@ -1551,8 +1553,12 @@ class Coder:
 
             log_content = "\n".join(log_lines)
             
-            # Write to the hardcoded file path
-            raw_response_file = os.path.join(self.root, ".aider.raw.txt")
+            # Use custom path if provided, otherwise default to old behavior
+            if self.raw_log_file:
+                raw_response_file = self.raw_log_file
+            else:
+                raw_response_file = os.path.join(self.root, ".aider.raw.txt")
+            
             self.io.write_text(raw_response_file, log_content, append=True)
 
         except Exception as e:
