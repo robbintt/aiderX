@@ -1502,8 +1502,28 @@ class Coder:
                 "content": self.partial_response_content
             }
             
-            # Include response message in logged messages
+            # Include response message in logged messages with reasoning
             messages_with_response = list(messages)
+            
+            # Create the content for logging with reasoning if available
+            response_content = self.partial_response_content
+            reasoning_content = None
+            
+            # Extract reasoning from the response if available
+            if completion and hasattr(completion, 'choices') and completion.choices:
+                try:
+                    reasoning_content = completion.choices[0].message.reasoning_content
+                except AttributeError:
+                    try:
+                        reasoning_content = completion.choices[0].message.reasoning
+                    except AttributeError:
+                        reasoning_content = None
+            
+            # Format the response with reasoning if available
+            if reasoning_content:
+                response_content = self._format_inline_reasoning(reasoning_content, response_content)
+            
+            response_message["content"] = response_content
             messages_with_response.append(response_message)
             
             log_entry = {
