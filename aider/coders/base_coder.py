@@ -1519,9 +1519,7 @@ class Coder:
                     except AttributeError:
                         reasoning_content = None
             
-            # Format the response with reasoning if available
-            if reasoning_content:
-                response_content = self._format_inline_reasoning(reasoning_content, response_content)
+            response_content = self._format_inline_reasoning(reasoning_content, response_content)
             
             response_message["content"] = response_content
             messages_with_response.append(response_message)
@@ -1893,12 +1891,13 @@ class Coder:
                 )
             ]
 
-    def _format_inline_reasoning(self, reasoning, content):
+    def _format_inline_reasoning(self, reasoning, content, reasoning_format="THINKING\n{reasoning}\n\nANSWER\n{content}"):
         """
         Formats reasoning and content into a single string if the model is configured for inline reasoning.
         """
-        if not self.main_model.inline_reasoning or not reasoning or not self.main_model.reasoning_format:
-            return ""
+        # note: return the reasoning format so the LLM knows it is empty
+        if not self.main_model.inline_reasoning:
+            return content
 
         return self.main_model.reasoning_format.format(reasoning=reasoning, content=content)
 
