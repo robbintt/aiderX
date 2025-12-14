@@ -1493,7 +1493,7 @@ class Coder:
                 return False
         return True
 
-    def log_raw_response(self, response, messages, model):
+    def log_raw_response(self, completion, messages, model):
         """Log raw request/response data to a separate file."""
         try:
             # Create response message entry as it would appear in messages list
@@ -1528,7 +1528,7 @@ class Coder:
                 "timestamp": datetime.now().isoformat(),
                 "model": model,
                 "messages": messages_with_response,
-                "response": response.json() if hasattr(response, "json") else str(response),
+                "response": completion.json() if hasattr(completion, "json") else str(completion),
             }
             
             # Format the log entry for readability in the markdown file
@@ -1556,7 +1556,7 @@ class Coder:
             self.io.write_text(raw_response_file, log_content, append=True)
 
         except Exception as e:
-            self.io.tool_warning(f"Failed to write raw response to {raw_response_file}: {e}")
+            self.io.tool_warning(f"Failed to write raw response: {e}")
 
 
     def send_message(self, inp):
