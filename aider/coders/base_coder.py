@@ -1496,10 +1496,20 @@ class Coder:
     def log_raw_response(self, response, messages, model):
         """Log raw request/response data to a separate file."""
         try:
+            # Create response message entry as it would appear in messages list
+            response_message = {
+                "role": "assistant", 
+                "content": self.partial_response_content
+            }
+            
+            # Include response message in logged messages
+            messages_with_response = list(messages)
+            messages_with_response.append(response_message)
+            
             log_entry = {
                 "timestamp": datetime.now().isoformat(),
                 "model": model,
-                "messages": messages,
+                "messages": messages_with_response,
                 "response": response.json() if hasattr(response, "json") else str(response),
             }
             
