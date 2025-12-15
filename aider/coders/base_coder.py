@@ -1255,11 +1255,6 @@ class Coder:
             final_reminders.append(self.gpt_prompts.lazy_prompt)
         if self.main_model.overeager:
             final_reminders.append(self.gpt_prompts.overeager_prompt)
-        final_reminders.append('''CRITICAL: You are an MoE model optimized for code.
-1. Do not let your internal thinking drift into conversation.
-2. The SEARCH block must match the file content EXACTLY, character-for-character.
-3. If you are unsure of the file content, STOP. Do not guess.
-''')
 
         user_lang = self.get_user_language()
         if user_lang:
